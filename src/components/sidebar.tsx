@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Zap, List, Calendar, Upload, BarChart3 } from "lucide-react";
 import { Profile } from "@/lib/types";
+import { ThemeSwitcher } from "./theme-switcher";
 
 const NAV_ITEMS = [
   {
@@ -81,6 +82,11 @@ export function Sidebar({
           </div>
         ))}
       </nav>
+
+      {/* Theme */}
+      <div className="border-t border-border">
+        <ThemeSwitcher userId={userId} initialTheme={profiles.find((p) => p.id === userId)?.theme || "obsidian-wine"} />
+      </div>
 
       {/* Users */}
       <div className="px-2 pb-4 border-t border-border pt-3 space-y-2">
