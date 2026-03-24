@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { resolveIndustry } from "@/lib/enrich/industry";
 import { ProspectResult } from "@/lib/types";
 import { revalidatePath } from "next/cache";
 
@@ -45,6 +46,8 @@ export async function importProspects(prospects: ProspectResult[]) {
       continue;
     }
 
+    const industry = resolveIndustry(p.categories);
+
     const { error } = await supabase.from("leads").insert({
       company_name: p.name,
       phone: p.phone,
@@ -52,6 +55,7 @@ export async function importProspects(prospects: ProspectResult[]) {
       address: p.address,
       city: p.city,
       state: p.state,
+      industry,
       source: "Google Maps",
       status: "new",
       temperature: "cold",
