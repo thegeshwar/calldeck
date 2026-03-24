@@ -7,14 +7,19 @@
 - After finishing: push commits, close issues with comments documenting what was done
 - Bugs/fixes: create issue with problem + root cause, close with fix commit
 - New features: create issue before implementation
-- Always `git push origin main` after committing
+- Always push after committing
+- **Branches:** `main` = stable, `dev` = active development. Work on `dev`, merge to `main` when ready.
+
+## Domains
+- **Production:** `calldeck.thegeshwar.com` (port 3002)
+- **Dev/Test:** `test.dev.thegeshwar.com` (port 3002, same server for now)
 
 ## Stack
 - Next.js 15 (App Router), Tailwind v4, Supabase
 - Fonts: Outfit (display) + JetBrains Mono (data/labels)
 - Icons: lucide-react — zero emojis anywhere
 - Dev: `npm run dev -- -p 3002`
-- DB: Local Supabase (API 54321, DB 54322)
+- DB: Local Supabase (API 54321, DB 54322) via `https://api.qms.thegeshwar.com`
 
 ## Design System: Obsidian Wine
 - **Root**: `#08040a` | **Surface**: `#110a14` | **Elevated**: `#1a101e`
