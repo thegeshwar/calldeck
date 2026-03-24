@@ -64,6 +64,14 @@ export interface Lead {
   objections: string | null;
   notes: string | null;
   assigned_to: string | null;
+  google_rating: number | null;
+  google_reviews: number | null;
+  google_categories: string[] | null;
+  google_hours: string[] | null;
+  google_maps_url: string | null;
+  google_place_id: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export interface Contact {
@@ -119,6 +127,27 @@ export interface LeadWithRelations extends Lead {
   contacts: Contact[];
   social_profiles: SocialProfile[];
   calls: Call[];
+}
+
+// Prospect types
+
+export interface ProspectResult {
+  place_id: string;
+  name: string;
+  phone: string | null;
+  website: string | null;
+  address: string;
+  city: string;
+  state: string;
+  rating: number | null;
+  reviews: number | null;
+  categories: string[];
+  hours: string[];
+  maps_url: string;
+  lat: number;
+  lng: number;
+  isOpen: boolean | null;
+  isInDB: boolean;
 }
 
 // Display helpers

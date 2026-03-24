@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Zap, List, Calendar, Upload, BarChart3, LogOut } from "lucide-react";
+import { Zap, List, Search, Calendar, Upload, BarChart3, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Profile } from "@/lib/types";
 import { ThemeSwitcher } from "./theme-switcher";
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
     items: [
       { href: "/queue", label: "Queue", icon: Zap, badge: true },
       { href: "/leads", label: "Browse", icon: List },
+      { href: "/prospect", label: "Prospect", icon: Search },
       { href: "/follow-ups", label: "Follow-ups", icon: Calendar },
     ],
   },
