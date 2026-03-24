@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Zap, List, Calendar, Upload, BarChart3 } from "lucide-react";
+import { Zap, List, Calendar, Upload, BarChart3, LogOut } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import { Profile } from "@/lib/types";
 import { ThemeSwitcher } from "./theme-switcher";
 
@@ -108,6 +109,19 @@ export function Sidebar({
             />
           </div>
         ))}
+        <button
+          onClick={async () => {
+            const supabase = createClient();
+            await supabase.auth.signOut();
+            window.location.href = "/login";
+          }}
+          className="flex items-center gap-2.5 px-3 py-1.5 w-full text-text-muted hover:text-red transition-colors cursor-pointer"
+        >
+          <LogOut size={12} />
+          <span className="text-[10px] font-[family-name:var(--font-mono)] uppercase tracking-[0.8px]">
+            Sign Out
+          </span>
+        </button>
       </div>
     </aside>
   );
