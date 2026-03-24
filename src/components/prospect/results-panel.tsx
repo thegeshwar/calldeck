@@ -1,9 +1,10 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import { ProspectResult } from "@/lib/types";
 import { ResultCard } from "./result-card";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 type SortKey = "rating" | "reviews" | "distance";
 
@@ -16,6 +17,9 @@ export function ResultsPanel({
   onSort,
   onImport,
   importing,
+  hasMore,
+  loadingMore,
+  onLoadMore,
 }: {
   results: ProspectResult[];
   selected: Set<string>;
@@ -25,16 +29,29 @@ export function ResultsPanel({
   onSort: (key: SortKey) => void;
   onImport: () => void;
   importing: boolean;
+  hasMore?: boolean;
+  loadingMore?: boolean;
+  onLoadMore?: () => void;
 }) {
-  const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const setCardRef = useCallback(
-    (index: number) => (el: HTMLDivElement | null) => {
-      if (el) cardRefs.current.set(index, el);
-      else cardRefs.current.delete(index);
-    },
-    []
-  );
+  // Infinite scroll: observe sentinel element at bottom of list
+  useEffect(() => {
+    if (!hasMore || !onLoadMore || !sentinelRef.current) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          onLoadMore();
+        }
+      },
+      { root: scrollRef.current, threshold: 0.1 }
+    );
+
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, onLoadMore]);
 
   const newCount = results.filter((r) => !r.isInDB).length;
   const selectedCount = selected.size;
@@ -76,8 +93,8 @@ export function ResultsPanel({
         )}
       </div>
 
-      {/* Cards */}
-      <div className="flex-1 overflow-y-auto px-3 py-2">
+      {/* Cards with infinite scroll */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-2">
         {results.length === 0 && (
           <div className="flex items-center justify-center h-full">
             <p className="text-xs text-text-muted font-[family-name:var(--font-mono)]">
@@ -91,9 +108,34 @@ export function ResultsPanel({
             result={result}
             selected={selected.has(result.place_id)}
             onToggle={() => onToggle(result.place_id)}
-            cardRef={setCardRef(i)}
           />
         ))}
+
+        {/* Sentinel for infinite scroll trigger */}
+        {hasMore && (
+          <div ref={sentinelRef} className="py-3 flex items-center justify-center">
+            {loadingMore ? (
+              <div className="flex items-center gap-2">
+                <Loader2 size={14} className="animate-spin text-green" />
+                <span className="text-[10px] font-[family-name:var(--font-mono)] text-text-muted">
+                  Loading more...
+                </span>
+              </div>
+            ) : (
+              <span className="text-[10px] font-[family-name:var(--font-mono)] text-text-muted">
+                Scroll for more results
+              </span>
+            )}
+          </div>
+        )}
+
+        {results.length > 0 && !hasMore && (
+          <div className="py-2 text-center">
+            <span className="text-[9px] font-[family-name:var(--font-mono)] text-text-muted">
+              {results.length} results total
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Import bar */}
@@ -116,10 +158,4 @@ export function ResultsPanel({
       )}
     </div>
   );
-}
-
-// Export for map pin click scrolling
-export function scrollToCard(index: number) {
-  const el = document.querySelector(`[data-card-index="${index}"]`);
-  el?.scrollIntoView({ behavior: "smooth", block: "center" });
 }
