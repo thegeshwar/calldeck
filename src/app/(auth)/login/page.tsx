@@ -55,6 +55,7 @@ export default function LoginPage() {
               type="email"
               name="email"
               autoComplete="email"
+              suppressHydrationWarning
               className="w-full bg-bg-surface border-2 border-border rounded px-3 py-2 text-sm text-text-primary outline-none focus:border-border-bright transition-colors"
               required
             />
@@ -67,6 +68,7 @@ export default function LoginPage() {
               type="password"
               name="password"
               autoComplete="current-password"
+              suppressHydrationWarning
               className="w-full bg-bg-surface border-2 border-border rounded px-3 py-2 text-sm text-text-primary outline-none focus:border-border-bright transition-colors"
               required
             />
