@@ -51,22 +51,45 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Step 1: Nearby Search
-  const nearbyUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=establishment${keyword ? `&keyword=${encodeURIComponent(keyword)}` : ""}&key=${API_KEY}`;
+  // Step 1: Nearby Search (paginate to get up to 60 results)
+  const baseUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=establishment${keyword ? `&keyword=${encodeURIComponent(keyword)}` : ""}&key=${API_KEY}`;
 
-  const nearbyRes = await fetch(nearbyUrl);
-  const nearbyData = await nearbyRes.json();
+  const allPlaces: NearbyResult[] = [];
+  let nextPageToken: string | null = null;
+  let pageUrl = baseUrl;
 
-  if (nearbyData.status !== "OK" && nearbyData.status !== "ZERO_RESULTS") {
-    return NextResponse.json(
-      { error: `Google API error: ${nearbyData.status}` },
-      { status: 502 }
+  for (let page = 0; page < 3; page++) {
+    if (page > 0 && nextPageToken) {
+      // Google requires a short delay before using next_page_token
+      await new Promise((r) => setTimeout(r, 2000));
+      pageUrl = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?pagetoken=${nextPageToken}&key=${API_KEY}`;
+    } else if (page > 0) {
+      break;
+    }
+
+    const nearbyRes = await fetch(pageUrl);
+    const nearbyData = await nearbyRes.json();
+
+    if (nearbyData.status !== "OK" && nearbyData.status !== "ZERO_RESULTS") {
+      if (page === 0) {
+        return NextResponse.json(
+          { error: `Google API error: ${nearbyData.status}` },
+          { status: 502 }
+        );
+      }
+      break;
+    }
+
+    const pageResults = (nearbyData.results || []).filter(
+      (p: NearbyResult) => p.business_status !== "CLOSED_PERMANENTLY"
     );
+    allPlaces.push(...pageResults);
+
+    nextPageToken = nearbyData.next_page_token || null;
+    if (!nextPageToken) break;
   }
 
-  const places: NearbyResult[] = (nearbyData.results || []).filter(
-    (p: NearbyResult) => p.business_status !== "CLOSED_PERMANENTLY"
-  );
+  const places = allPlaces;
 
   // Step 2: Get details for each place (batch)
   const results = await Promise.all(
