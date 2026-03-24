@@ -1,5 +1,14 @@
 # CallDeck — Project Rules
 
+## GitHub Workflow (MANDATORY)
+- **Repo:** `thegeshwar/calldeck` | **Project Board:** #6 on thegeshwar
+- All work MUST be tracked through GitHub issues
+- Before starting: check for existing issues, reference them
+- After finishing: push commits, close issues with comments documenting what was done
+- Bugs/fixes: create issue with problem + root cause, close with fix commit
+- New features: create issue before implementation
+- Always `git push origin main` after committing
+
 ## Stack
 - Next.js 15 (App Router), Tailwind v4, Supabase
 - Fonts: Outfit (display) + JetBrains Mono (data/labels)
