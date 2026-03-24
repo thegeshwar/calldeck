@@ -64,7 +64,10 @@ export function ProspectClient() {
   const existingCount = results.filter((r) => r.isInDB).length;
   const hasMore = nextPageTokenRef.current !== null;
 
+  const pageNumberRef = useRef(0);
+
   async function fetchPage(params: { lat: number; lng: number; keyword: string; radius: number }, pageToken?: string) {
+    const page = pageToken ? pageNumberRef.current : 0;
     const res = await fetch("/api/prospect/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -73,6 +76,7 @@ export function ProspectClient() {
         lng: params.lng,
         keyword: params.keyword,
         radius: params.radius,
+        page,
         ...(pageToken ? { pageToken } : {}),
       }),
     });
@@ -91,6 +95,7 @@ export function ProspectClient() {
     setSelected(new Set());
     setResults([]);
     nextPageTokenRef.current = null;
+    pageNumberRef.current = 0;
 
     setCenter([params.lat, params.lng]);
     setRadius(params.radius);
@@ -117,11 +122,11 @@ export function ProspectClient() {
     if (!nextPageTokenRef.current || !searchParamsRef.current || loadingMore) return;
 
     setLoadingMore(true);
+    pageNumberRef.current += 1;
 
     try {
       const data = await fetchPage(searchParamsRef.current, nextPageTokenRef.current);
       if (!data.error && data.results) {
-        // Deduplicate against existing results
         const existingIds = new Set(results.map((r) => r.place_id));
         const newResults = (data.results as ProspectResult[]).filter(
           (r) => !existingIds.has(r.place_id)
