@@ -1,20 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
+
+    const fd = new FormData(formRef.current!);
+    const email = fd.get("email") as string;
+    const password = fd.get("password") as string;
 
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -25,13 +26,14 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/queue");
-    router.refresh();
+    // Hard redirect — no hydration mismatch, clean page load
+    window.location.href = "/queue";
   }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-bg-root">
       <form
+        ref={formRef}
         onSubmit={handleSubmit}
         className="w-full max-w-sm bg-bg-elevated border-2 border-border rounded-lg p-8"
       >
@@ -51,8 +53,8 @@ export default function LoginPage() {
             </label>
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              autoComplete="email"
               className="w-full bg-bg-surface border-2 border-border rounded px-3 py-2 text-sm text-text-primary outline-none focus:border-border-bright transition-colors"
               required
             />
@@ -63,8 +65,8 @@ export default function LoginPage() {
             </label>
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              autoComplete="current-password"
               className="w-full bg-bg-surface border-2 border-border rounded px-3 py-2 text-sm text-text-primary outline-none focus:border-border-bright transition-colors"
               required
             />
@@ -78,7 +80,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-6 w-full bg-green text-black font-bold text-xs uppercase tracking-[2px] py-2.5 rounded font-[family-name:var(--font-mono)] hover:brightness-110 transition-all disabled:opacity-50"
+          className="mt-6 w-full bg-green text-black font-bold text-xs uppercase tracking-[2px] py-3 rounded font-[family-name:var(--font-mono)] hover:brightness-110 active:translate-y-[1px] transition-all disabled:opacity-50 cursor-pointer"
         >
           {loading ? "Signing in..." : "Sign In"}
         </button>
