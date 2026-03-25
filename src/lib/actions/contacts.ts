@@ -16,13 +16,15 @@ export async function addContact(
 ) {
   const supabase = await createClient();
 
-  const { error } = await supabase.from("contacts").insert({
+  const { data: contact, error } = await supabase.from("contacts").insert({
     lead_id: leadId,
     ...data,
-  });
+  }).select().single();
 
   if (error) throw error;
   revalidatePath(`/leads/${leadId}`);
+  revalidatePath("/queue");
+  return contact;
 }
 
 export async function updateContact(

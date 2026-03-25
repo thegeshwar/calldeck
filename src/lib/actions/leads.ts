@@ -107,6 +107,20 @@ export async function snoozeLead(id: string, days: number = 1) {
   revalidatePath("/follow-ups");
 }
 
+export async function clearFollowup(id: string) {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ next_followup: null, followup_reason: null })
+    .eq("id", id);
+
+  if (error) throw error;
+
+  revalidatePath("/queue");
+  revalidatePath("/follow-ups");
+}
+
 export async function assignLead(id: string, userId: string) {
   const supabase = await createClient();
 

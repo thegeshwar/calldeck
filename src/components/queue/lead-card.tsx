@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Phone, Globe, MapPin, Users, ExternalLink, User, Clock } from "lucide-react";
+import { Phone, Globe, MapPin, Users, ExternalLink, User, Clock, Plus, X } from "lucide-react";
 import { LeadWithRelations, OUTCOME_LABELS } from "@/lib/types";
 import { todayLocal } from "@/lib/queue-logic";
 import { Pill } from "@/components/ui/pill";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QualityDots } from "@/components/ui/quality-dots";
-import { skipLead, snoozeLead } from "@/lib/actions/leads";
+import { skipLead, snoozeLead, clearFollowup } from "@/lib/actions/leads";
+import { QuickAddContact } from "./quick-add-contact";
 import Link from "next/link";
 
 const SNOOZE_OPTIONS = [
@@ -52,6 +53,11 @@ export function LeadCard({
   else if (lead.status === "new") callContext = "First contact — introduce QMS Agents services";
 
   const [showSnooze, setShowSnooze] = useState(false);
+  const [showAddContact, setShowAddContact] = useState(false);
+
+  async function handleClearFollowup() {
+    await clearFollowup(lead.id);
+  }
 
   async function handleSkip() {
     await skipLead(lead.id);
@@ -79,6 +85,15 @@ export function LeadCard({
               <span className="text-[10px] font-[family-name:var(--font-mono)] text-amber uppercase tracking-wider">
                 Due Today
               </span>
+            )}
+            {lead.next_followup && (
+              <button
+                onClick={handleClearFollowup}
+                className="text-text-muted hover:text-red transition-colors cursor-pointer"
+                title="Clear follow-up"
+              >
+                <X size={12} />
+              </button>
             )}
           </div>
           <h2 className="text-xl font-semibold text-text-primary">{lead.company_name}</h2>
@@ -110,8 +125,16 @@ export function LeadCard({
       <div className="grid grid-cols-2 gap-3">
         {/* Decision Maker */}
         <Card>
-          <div className="text-[10px] font-[family-name:var(--font-mono)] uppercase tracking-[0.8px] text-text-muted mb-1.5">
-            Decision Maker
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="text-[10px] font-[family-name:var(--font-mono)] uppercase tracking-[0.8px] text-text-muted">
+              Decision Maker
+            </div>
+            <button
+              onClick={() => setShowAddContact(!showAddContact)}
+              className="text-text-muted hover:text-green transition-colors cursor-pointer"
+            >
+              <Plus size={14} />
+            </button>
           </div>
           {primaryContact ? (
             <div>
@@ -124,6 +147,12 @@ export function LeadCard({
             </div>
           ) : (
             <div className="text-xs text-text-muted">No contact added</div>
+          )}
+          {showAddContact && (
+            <QuickAddContact
+              leadId={lead.id}
+              onDone={() => setShowAddContact(false)}
+            />
           )}
         </Card>
 
