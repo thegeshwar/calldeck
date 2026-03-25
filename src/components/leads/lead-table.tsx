@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { DataTable, Column } from "@/components/ui/data-table";
 import { Pill } from "@/components/ui/pill";
 import { Lead, STATUS_LABELS, LeadStatus, LeadTemperature, Contact } from "@/lib/types";
+import { todayLocal } from "@/lib/queue-logic";
 
 type LeadRow = Lead & { contacts: { name: string }[]; calls: { id: string }[] };
 
@@ -35,7 +36,7 @@ export function LeadTable({ leads }: { leads: LeadRow[] }) {
     router.push(`/leads?${params.toString()}`);
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal();
 
   const columns: Column<LeadRow>[] = [
     {

@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Lead, LeadWithRelations, LeadStatus, LeadTemperature } from "@/lib/types";
-import { getQueuePriority } from "@/lib/queue-logic";
+import { getQueuePriority, todayLocal } from "@/lib/queue-logic";
 
 export async function getQueueLeads(): Promise<LeadWithRelations[]> {
   const supabase = await createClient();
@@ -91,7 +91,7 @@ export async function getLeadsList(filters: LeadListFilters = {}) {
 
 export async function getLeadCount(): Promise<number> {
   const supabase = await createClient();
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal();
 
   const { count, error } = await supabase
     .from("leads")

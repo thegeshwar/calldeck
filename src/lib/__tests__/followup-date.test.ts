@@ -44,13 +44,13 @@ describe("user dropdown always controls follow-up date", () => {
   it("when user selects Tomorrow (1 day), follow-up is tomorrow regardless of auto-rule", () => {
     // Simulate: outcome is no_answer (auto=2 days), user picks "1" in dropdown
     const userSelection = 1;
-    const result = addDays(new Date("2026-03-25"), userSelection);
+    const result = addDays(new Date("2026-03-25T12:00:00Z"), userSelection);
     expect(result).toBe("2026-03-26"); // tomorrow, not 2 days out
   });
 
   it("when user selects In 1 week (7 days), follow-up is 7 days out", () => {
     const userSelection = 7;
-    const result = addDays(new Date("2026-03-25"), userSelection);
+    const result = addDays(new Date("2026-03-25T12:00:00Z"), userSelection);
     expect(result).toBe("2026-04-01");
   });
 });

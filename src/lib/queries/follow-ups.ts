@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Lead } from "@/lib/types";
+import { todayLocal } from "@/lib/queue-logic";
 
 export async function getFollowUpsForWeek(startDate: string) {
   const supabase = await createClient();
@@ -30,7 +31,7 @@ export async function getFollowUpsForWeek(startDate: string) {
 
 export async function getOverdueCount(): Promise<number> {
   const supabase = await createClient();
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal();
 
   const { count, error } = await supabase
     .from("leads")
@@ -44,7 +45,7 @@ export async function getOverdueCount(): Promise<number> {
 
 export async function getOverdueLeads(): Promise<Lead[]> {
   const supabase = await createClient();
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal();
 
   const { data, error } = await supabase
     .from("leads")

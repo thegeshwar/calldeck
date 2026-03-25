@@ -1,6 +1,7 @@
 import { getQueueLeads } from "@/lib/queries/leads";
 import { createClient } from "@/lib/supabase/server";
 import { Profile } from "@/lib/types";
+import { todayLocal } from "@/lib/queue-logic";
 import { Topbar } from "@/components/topbar";
 import { StatBadge } from "@/components/ui/stat-badge";
 import { QueueClient } from "./queue-client";
@@ -13,7 +14,7 @@ export default async function QueuePage() {
     .from("cd_profiles")
     .select("*");
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal();
   const overdue = leads.filter((l) => l.next_followup && l.next_followup < today).length;
   const dueToday = leads.filter((l) => l.next_followup === today).length;
   const hot = leads.filter((l) => l.temperature === "hot").length;

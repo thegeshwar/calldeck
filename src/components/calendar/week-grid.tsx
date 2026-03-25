@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { todayLocal } from "@/lib/queue-logic";
 
 interface FollowUpEntry {
   id: string;
@@ -25,7 +26,7 @@ export function WeekGrid({
     d.setDate(d.getDate() + i);
     return d.toISOString().split("T")[0];
   });
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal();
 
   return (
     <div className="grid grid-cols-7 gap-2 px-6 py-3 flex-1 overflow-y-auto">

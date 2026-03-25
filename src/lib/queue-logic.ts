@@ -1,7 +1,14 @@
 import { CallOutcome, Lead } from "./types";
 
+const TZ = "America/Los_Angeles";
+
+/** Returns today's date as YYYY-MM-DD in PST/PDT */
+export function todayLocal(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: TZ });
+}
+
 export function getQueuePriority(lead: Lead): number {
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal();
   const followup = lead.next_followup;
 
   // Priority 1: Overdue follow-ups (oldest first)
@@ -59,8 +66,9 @@ export function getAutoFollowup(outcome: CallOutcome): AutoFollowupResult {
   }
 }
 
+/** Adds days to a date and returns YYYY-MM-DD in PST/PDT */
 export function addDays(date: Date, days: number): string {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
-  return d.toISOString().split("T")[0];
+  return d.toLocaleDateString("en-CA", { timeZone: TZ });
 }

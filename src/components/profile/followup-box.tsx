@@ -4,12 +4,12 @@ import { Clock, CalendarDays } from "lucide-react";
 import { Lead } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { updateLead } from "@/lib/actions/leads";
-import { addDays } from "@/lib/queue-logic";
+import { addDays, todayLocal } from "@/lib/queue-logic";
 import { useRouter } from "next/navigation";
 
 export function FollowupBox({ lead }: { lead: Lead }) {
   const router = useRouter();
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal();
   const isOverdue = lead.next_followup && lead.next_followup < today;
 
   async function reschedule(days: number) {

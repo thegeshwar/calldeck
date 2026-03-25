@@ -2,6 +2,7 @@
 
 import { Phone, Globe, MapPin, Users, ExternalLink, User, Clock } from "lucide-react";
 import { LeadWithRelations, OUTCOME_LABELS } from "@/lib/types";
+import { todayLocal } from "@/lib/queue-logic";
 import { Pill } from "@/components/ui/pill";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,7 @@ export function LeadCard({
   onSkip: () => void;
   onSnooze: () => void;
 }) {
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayLocal();
   const isOverdue = lead.next_followup && lead.next_followup < today;
   const isDueToday = lead.next_followup === today;
   const primaryContact = lead.contacts.find((c) => c.is_primary) || lead.contacts[0];
