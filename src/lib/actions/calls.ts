@@ -35,13 +35,22 @@ export async function logCall(data: {
   const auto = getAutoFollowup(data.outcome);
   const leadUpdate: Record<string, unknown> = {};
 
-  // Any call on a "new" lead should move it to "contacted" at minimum
+  // Fetch current lead to make informed status decisions
   const { data: currentLead } = await supabase
     .from("leads")
     .select("status")
     .eq("id", data.lead_id)
     .single();
-  if (currentLead?.status === "new") {
+
+  // Status progression: new → contacted → interested → meeting_scheduled → proposal_sent
+  // Only upgrade status, never downgrade
+  const STATUS_RANK: Record<string, number> = {
+    new: 0, contacted: 1, interested: 2, meeting_scheduled: 3, proposal_sent: 4,
+  };
+  const currentRank = STATUS_RANK[currentLead?.status || "new"] ?? 0;
+
+  // Any call on a "new" lead should move it to "contacted" at minimum
+  if (currentRank < STATUS_RANK.contacted) {
     leadUpdate.status = "contacted";
   }
 
@@ -52,8 +61,8 @@ export async function logCall(data: {
     leadUpdate.next_followup = addDays(new Date(), auto.days);
   }
 
-  // Auto-update status
-  if (auto.autoStatus) {
+  // Auto-update status (only if it's a promotion, not a downgrade)
+  if (auto.autoStatus && (STATUS_RANK[auto.autoStatus] ?? 0) > currentRank) {
     leadUpdate.status = auto.autoStatus;
   }
 

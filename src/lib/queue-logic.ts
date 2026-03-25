@@ -28,7 +28,7 @@ export function getQueuePriority(lead: Lead): number {
 
   // Priority 4: Fresh untouched leads (newest imports first)
   if (lead.status === "new") {
-    return 4_000_000 + new Date(lead.created_at).getTime() / 1e10;
+    return 4_000_000 + (1 - new Date(lead.created_at).getTime() / 1e13);
   }
 
   // Everything else
@@ -68,7 +68,10 @@ export function getAutoFollowup(outcome: CallOutcome): AutoFollowupResult {
 
 /** Adds days to a date and returns YYYY-MM-DD in PST/PDT */
 export function addDays(date: Date, days: number): string {
-  const d = new Date(date);
+  // Get the current date in PST first, then do arithmetic to avoid
+  // off-by-one errors when server UTC date differs from PST date
+  const pstDateStr = date.toLocaleDateString("en-CA", { timeZone: TZ });
+  const d = new Date(pstDateStr + "T12:00:00");
   d.setDate(d.getDate() + days);
   return d.toLocaleDateString("en-CA", { timeZone: TZ });
 }

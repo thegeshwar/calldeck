@@ -81,10 +81,22 @@ export async function updateLeadStatus(
 export async function skipLead(id: string) {
   const supabase = await createClient();
 
-  // Clear follow-up so lead drops to priority 5 (back of queue)
+  // Clear follow-up and cool down temperature so lead drops to priority 5
+  // (hot leads would otherwise resurface at priority 3 immediately)
+  const { data: lead } = await supabase
+    .from("leads")
+    .select("temperature")
+    .eq("id", id)
+    .single();
+
+  const update: Record<string, unknown> = { next_followup: null };
+  if (lead?.temperature === "hot") {
+    update.temperature = "warm";
+  }
+
   const { error } = await supabase
     .from("leads")
-    .update({ next_followup: null })
+    .update(update)
     .eq("id", id);
 
   if (error) throw error;

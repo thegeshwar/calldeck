@@ -32,11 +32,10 @@ export function QueueClient({
     }
   }
 
-  function handleLogged() {
-    // Advance index first, then refresh server data in a transition
-    // so React waits for the new data before re-rendering
-    const nextIndex = currentIndex < leads.length - 1 ? currentIndex + 1 : currentIndex;
-    setCurrentIndex(nextIndex);
+  function handleServerAction() {
+    // Reset to top — server re-sorts the queue, so index 0 is always
+    // the highest priority lead after the action
+    setCurrentIndex(0);
     startTransition(() => {
       router.refresh();
     });
@@ -65,16 +64,8 @@ export function QueueClient({
             // Scroll to quick log
             document.getElementById("quick-log")?.scrollIntoView({ behavior: "smooth" });
           }}
-          onSkip={() => {
-            const nextIndex = currentIndex < leads.length - 1 ? currentIndex + 1 : currentIndex;
-            setCurrentIndex(nextIndex);
-            startTransition(() => { router.refresh(); });
-          }}
-          onSnooze={() => {
-            const nextIndex = currentIndex < leads.length - 1 ? currentIndex + 1 : currentIndex;
-            setCurrentIndex(nextIndex);
-            startTransition(() => { router.refresh(); });
-          }}
+          onSkip={handleServerAction}
+          onSnooze={handleServerAction}
         />
         <div className="px-4 pb-3 border-t border-border pt-2">
           <QueueNav
@@ -94,7 +85,7 @@ export function QueueClient({
         <CallHistory calls={lead.calls} profiles={profiles} />
 
         <div id="quick-log">
-          <QuickLog leadId={lead.id} onLogged={handleLogged} />
+          <QuickLog leadId={lead.id} onLogged={handleServerAction} />
         </div>
       </div>
     </div>

@@ -4,11 +4,14 @@ import { getQueuePriority, todayLocal } from "@/lib/queue-logic";
 
 export async function getQueueLeads(): Promise<LeadWithRelations[]> {
   const supabase = await createClient();
+  const today = todayLocal();
 
+  // Only fetch actionable leads: overdue, due today, no follow-up set, or hot
   const { data, error } = await supabase
     .from("leads")
     .select("*, contacts(*), social_profiles(*), calls(*)")
     .not("status", "in", '("won","lost")')
+    .or(`next_followup.is.null,next_followup.lte.${today},temperature.eq.hot`)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
