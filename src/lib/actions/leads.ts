@@ -78,12 +78,27 @@ export async function updateLeadStatus(
   revalidatePath("/queue");
 }
 
-export async function snoozeLead(id: string) {
+export async function skipLead(id: string) {
+  const supabase = await createClient();
+
+  // Clear follow-up so lead drops to priority 5 (back of queue)
+  const { error } = await supabase
+    .from("leads")
+    .update({ next_followup: null })
+    .eq("id", id);
+
+  if (error) throw error;
+
+  revalidatePath("/queue");
+  revalidatePath("/follow-ups");
+}
+
+export async function snoozeLead(id: string, days: number = 1) {
   const supabase = await createClient();
 
   const { error } = await supabase
     .from("leads")
-    .update({ next_followup: addDays(new Date(), 1) })
+    .update({ next_followup: addDays(new Date(), days) })
     .eq("id", id);
 
   if (error) throw error;

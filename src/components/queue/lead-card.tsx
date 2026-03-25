@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Phone, Globe, MapPin, Users, ExternalLink, User, Clock } from "lucide-react";
 import { LeadWithRelations, OUTCOME_LABELS } from "@/lib/types";
 import { todayLocal } from "@/lib/queue-logic";
@@ -7,8 +8,16 @@ import { Pill } from "@/components/ui/pill";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QualityDots } from "@/components/ui/quality-dots";
-import { snoozeLead } from "@/lib/actions/leads";
+import { skipLead, snoozeLead } from "@/lib/actions/leads";
 import Link from "next/link";
+
+const SNOOZE_OPTIONS = [
+  { label: "Tomorrow", days: 1 },
+  { label: "2 days", days: 2 },
+  { label: "1 week", days: 7 },
+  { label: "2 weeks", days: 14 },
+  { label: "1 month", days: 30 },
+];
 
 const TEMP_COLORS = { hot: "red" as const, warm: "amber" as const, cold: "blue" as const };
 const STATUS_COLORS: Record<string, "green" | "amber" | "red" | "blue" | "purple" | "neutral"> = {
@@ -42,8 +51,16 @@ export function LeadCard({
   else if (lastCall?.notes) callContext = lastCall.notes;
   else if (lead.status === "new") callContext = "First contact — introduce QMS Agents services";
 
-  async function handleSnooze() {
-    await snoozeLead(lead.id);
+  const [showSnooze, setShowSnooze] = useState(false);
+
+  async function handleSkip() {
+    await skipLead(lead.id);
+    onSkip();
+  }
+
+  async function handleSnooze(days: number) {
+    await snoozeLead(lead.id, days);
+    setShowSnooze(false);
     onSnooze();
   }
 
@@ -205,12 +222,27 @@ export function LeadCard({
         <Button variant="call" onClick={onCallNow} className="flex-1">
           Call Now
         </Button>
-        <Button variant="ghost" onClick={onSkip}>
+        <Button variant="ghost" onClick={handleSkip}>
           Skip
         </Button>
-        <Button variant="ghost" onClick={handleSnooze}>
-          Snooze
-        </Button>
+        <div className="relative">
+          <Button variant="ghost" onClick={() => setShowSnooze(!showSnooze)}>
+            Snooze
+          </Button>
+          {showSnooze && (
+            <div className="absolute bottom-full left-0 mb-1 bg-bg-elevated border-2 border-border rounded p-1 min-w-[120px] z-10">
+              {SNOOZE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.days}
+                  onClick={() => handleSnooze(opt.days)}
+                  className="block w-full text-left px-2 py-1.5 text-xs font-[family-name:var(--font-mono)] text-text-secondary hover:text-text-primary hover:bg-bg-surface rounded cursor-pointer"
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <Link href={`/leads/${lead.id}`}>
           <Button variant="ghost">
             <ExternalLink size={12} />

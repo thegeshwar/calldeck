@@ -65,8 +65,16 @@ export function QueueClient({
             // Scroll to quick log
             document.getElementById("quick-log")?.scrollIntoView({ behavior: "smooth" });
           }}
-          onSkip={handleNext}
-          onSnooze={() => router.refresh()}
+          onSkip={() => {
+            const nextIndex = currentIndex < leads.length - 1 ? currentIndex + 1 : currentIndex;
+            setCurrentIndex(nextIndex);
+            startTransition(() => { router.refresh(); });
+          }}
+          onSnooze={() => {
+            const nextIndex = currentIndex < leads.length - 1 ? currentIndex + 1 : currentIndex;
+            setCurrentIndex(nextIndex);
+            startTransition(() => { router.refresh(); });
+          }}
         />
         <div className="px-4 pb-3 border-t border-border pt-2">
           <QueueNav
