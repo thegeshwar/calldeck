@@ -35,6 +35,16 @@ export async function logCall(data: {
   const auto = getAutoFollowup(data.outcome);
   const leadUpdate: Record<string, unknown> = {};
 
+  // Any call on a "new" lead should move it to "contacted" at minimum
+  const { data: currentLead } = await supabase
+    .from("leads")
+    .select("status")
+    .eq("id", data.lead_id)
+    .single();
+  if (currentLead?.status === "new") {
+    leadUpdate.status = "contacted";
+  }
+
   // Set follow-up date
   if (data.followup_date) {
     leadUpdate.next_followup = data.followup_date;

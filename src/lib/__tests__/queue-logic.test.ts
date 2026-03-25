@@ -142,4 +142,21 @@ describe("getQueuePriority", () => {
     const normal = getQueuePriority({ ...baseLead, status: "contacted" });
     expect(overdue).toBeLessThan(normal);
   });
+
+  it("contacted lead with future followup goes to back of queue (priority 5)", () => {
+    const contacted = getQueuePriority({
+      ...baseLead,
+      status: "contacted",
+      temperature: "cold",
+      next_followup: "2099-01-01", // far future
+    });
+    // Should be priority 5 (everything else), NOT priority 4 (new)
+    expect(contacted).toBe(5_000_000);
+  });
+
+  it("new leads rank higher than contacted leads", () => {
+    const newLead = getQueuePriority({ ...baseLead, status: "new" });
+    const contacted = getQueuePriority({ ...baseLead, status: "contacted" });
+    expect(newLead).toBeLessThan(contacted);
+  });
 });
