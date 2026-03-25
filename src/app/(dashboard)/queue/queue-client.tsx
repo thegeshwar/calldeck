@@ -71,8 +71,10 @@ export function QueueClient({
           <QueueNav
             currentIndex={currentIndex}
             totalCount={leads.length}
+            leads={leads}
             onPrev={handlePrev}
             onNext={handleNext}
+            onJumpTo={(i) => setCurrentIndex(i)}
           />
         </div>
       </div>
