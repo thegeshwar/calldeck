@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { LeadWithRelations, Profile } from "@/lib/types";
 import { LeadCard } from "@/components/queue/lead-card";
@@ -16,6 +16,7 @@ export function QueueClient({
   profiles: Profile[];
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const lead = leads[currentIndex];
 
@@ -32,11 +33,13 @@ export function QueueClient({
   }
 
   function handleLogged() {
-    router.refresh();
-    // Move to next lead after logging
-    if (currentIndex < leads.length - 1) {
-      setCurrentIndex((i) => i + 1);
-    }
+    // Advance index first, then refresh server data in a transition
+    // so React waits for the new data before re-rendering
+    const nextIndex = currentIndex < leads.length - 1 ? currentIndex + 1 : currentIndex;
+    setCurrentIndex(nextIndex);
+    startTransition(() => {
+      router.refresh();
+    });
   }
 
   if (!lead) {

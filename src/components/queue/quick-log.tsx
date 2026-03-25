@@ -65,11 +65,12 @@ export function QuickLog({
     let followupDate: string | undefined;
     if (needsManualDate && customDate) {
       followupDate = customDate;
-    } else if (!needsManualDate && !isNotInterested) {
-      const days = auto?.days ?? parseInt(followupDays);
-      followupDate = addDays(new Date(), days);
-    } else if (isNotInterested && !markLost) {
-      followupDate = addDays(new Date(), 30);
+    } else if (isNotInterested && markLost) {
+      // Lost leads get no follow-up
+      followupDate = undefined;
+    } else {
+      // Always use the user's dropdown selection (pre-set to auto-rule default)
+      followupDate = addDays(new Date(), parseInt(followupDays));
     }
 
     await logCall({
@@ -108,6 +109,11 @@ export function QuickLog({
             onClick={() => {
               setOutcome(o.value);
               setMarkLost(false);
+              // Set follow-up dropdown to auto-rule default for this outcome
+              const autoResult = getAutoFollowup(o.value);
+              if (autoResult.days !== null) {
+                setFollowupDays(String(autoResult.days));
+              }
             }}
             className="cursor-pointer"
           >
@@ -123,6 +129,7 @@ export function QuickLog({
           onClick={() => {
             setOutcome("not_interested");
             setMarkLost(false);
+            setFollowupDays("30");
           }}
           className="cursor-pointer"
         >
@@ -163,8 +170,8 @@ export function QuickLog({
           </select>
         </div>
 
-        {/* Follow-up date */}
-        {outcome && !isNotInterested && (
+        {/* Follow-up date — always shown when outcome selected (unless marking as lost) */}
+        {outcome && !(isNotInterested && markLost) && (
           <div className="flex-1">
             <label className="block text-[10px] font-[family-name:var(--font-mono)] uppercase tracking-[0.8px] text-text-muted mb-1">
               Follow-up
