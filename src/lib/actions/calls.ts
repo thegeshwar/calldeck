@@ -14,6 +14,7 @@ export async function logCall(data: {
   followup_date?: string;
   mark_lost?: boolean;
   lost_reason?: string;
+  requeue?: boolean;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -63,6 +64,11 @@ export async function logCall(data: {
   // Set follow-up reason from notes
   if (data.notes) {
     leadUpdate.followup_reason = data.notes;
+  }
+
+  // Re-queue override: clear followup so lead stays in today's queue
+  if (data.requeue) {
+    leadUpdate.next_followup = null;
   }
 
   if (Object.keys(leadUpdate).length > 0) {

@@ -58,32 +58,13 @@ export function QuickLog({
   const needsManualDate = auto?.requiresManualDate ?? false;
   const isNotInterested = outcome === "not_interested";
 
-  async function handleSave() {
-    if (!outcome) return;
-    setSaving(true);
+  function getFollowupDate(): string | undefined {
+    if (needsManualDate && customDate) return customDate;
+    if (isNotInterested && markLost) return undefined;
+    return addDays(new Date(), parseInt(followupDays));
+  }
 
-    let followupDate: string | undefined;
-    if (needsManualDate && customDate) {
-      followupDate = customDate;
-    } else if (isNotInterested && markLost) {
-      // Lost leads get no follow-up
-      followupDate = undefined;
-    } else {
-      // Always use the user's dropdown selection (pre-set to auto-rule default)
-      followupDate = addDays(new Date(), parseInt(followupDays));
-    }
-
-    await logCall({
-      lead_id: leadId,
-      outcome,
-      notes: notes || undefined,
-      next_action: nextAction,
-      followup_date: followupDate,
-      mark_lost: isNotInterested && markLost,
-      lost_reason: markLost ? lostReason : undefined,
-    });
-
-    // Reset form
+  function resetForm() {
     setOutcome(null);
     setNotes("");
     setNextAction("follow_up");
@@ -92,6 +73,24 @@ export function QuickLog({
     setMarkLost(false);
     setLostReason("");
     setSaving(false);
+  }
+
+  async function handleSave(requeue = false) {
+    if (!outcome) return;
+    setSaving(true);
+
+    await logCall({
+      lead_id: leadId,
+      outcome,
+      notes: notes || undefined,
+      next_action: nextAction,
+      followup_date: getFollowupDate(),
+      mark_lost: isNotInterested && markLost,
+      lost_reason: markLost ? lostReason : undefined,
+      requeue,
+    });
+
+    resetForm();
     onLogged();
   }
 
@@ -224,15 +223,25 @@ export function QuickLog({
         </div>
       )}
 
-      {/* Save */}
-      <Button
-        variant="call"
-        onClick={handleSave}
-        disabled={!outcome || saving || (needsManualDate && !customDate)}
-        className="w-full"
-      >
-        {saving ? "Saving..." : "Save & Next"}
-      </Button>
+      {/* Save buttons */}
+      <div className="flex gap-2">
+        <Button
+          variant="call"
+          onClick={() => handleSave(false)}
+          disabled={!outcome || saving || (needsManualDate && !customDate)}
+          className="flex-1"
+        >
+          {saving ? "Saving..." : "Save & Next"}
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => handleSave(true)}
+          disabled={!outcome || saving || (needsManualDate && !customDate)}
+          className="flex-1 border-green/30 text-green hover:border-green/60"
+        >
+          {saving ? "Saving..." : "Re-queue"}
+        </Button>
+      </div>
     </div>
   );
 }
