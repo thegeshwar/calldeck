@@ -61,7 +61,7 @@ export function CallHistory({
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] font-[family-name:var(--font-mono)] text-text-muted">
-                  {date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  {date.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/Los_Angeles" })}
                 </span>
                 {!isEditing && (
                   <button

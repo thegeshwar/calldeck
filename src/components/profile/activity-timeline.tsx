@@ -55,7 +55,7 @@ export function ActivityTimeline({
                   {OUTCOME_LABELS[call.outcome]}
                 </Pill>
                 <span className="text-[10px] font-[family-name:var(--font-mono)] text-text-muted">
-                  {date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  {date.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/Los_Angeles" })}
                   {" "}
                   {date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
                 </span>
@@ -88,7 +88,7 @@ export function ActivityTimeline({
         </div>
         <div className="pb-2">
           <div className="text-[10px] font-[family-name:var(--font-mono)] text-text-muted border border-dashed border-border rounded px-2 py-1">
-            Lead created {new Date(createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+            Lead created {new Date(createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/Los_Angeles" })}
           </div>
         </div>
       </div>

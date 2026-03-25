@@ -55,7 +55,7 @@ export function CallsChart({
                 })}
               </div>
               <span className="text-[9px] font-[family-name:var(--font-mono)] text-text-muted">
-                {new Date(day).toLocaleDateString("en-US", { weekday: "short" })}
+                {new Date(day).toLocaleDateString("en-US", { weekday: "short", timeZone: "America/Los_Angeles" })}
               </span>
             </div>
           );

@@ -37,9 +37,9 @@ export function WeekNav({ weekStart }: { weekStart: string }) {
         Today
       </button>
       <span className="text-xs font-[family-name:var(--font-mono)] text-text-primary min-w-[180px] text-center">
-        {new Date(weekStart).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+        {new Date(weekStart).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/Los_Angeles" })}
         {" — "}
-        {endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+        {endDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/Los_Angeles" })}
       </span>
       <Button variant="ghost" onClick={() => go(shiftWeek(weekStart, 7))} className="px-2">
         <ChevronRight size={12} />
