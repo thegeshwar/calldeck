@@ -86,3 +86,21 @@ export async function logCall(data: {
   revalidatePath("/follow-ups");
   revalidatePath("/stats");
 }
+
+export async function updateCall(
+  callId: string,
+  data: Partial<{
+    notes: string;
+    outcome: CallOutcome;
+    next_action: NextActionType;
+  }>
+) {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("calls").update(data).eq("id", callId);
+  if (error) throw error;
+
+  revalidatePath("/queue");
+  revalidatePath("/leads");
+  revalidatePath("/stats");
+}

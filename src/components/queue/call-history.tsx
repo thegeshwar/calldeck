@@ -1,6 +1,12 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Pencil } from "lucide-react";
 import { Call, Profile, OUTCOME_LABELS } from "@/lib/types";
 import { Pill } from "@/components/ui/pill";
 import { Card } from "@/components/ui/card";
+import { CallHistoryEdit } from "./call-history-edit";
 
 const OUTCOME_COLORS: Record<string, "green" | "amber" | "red" | "blue" | "purple" | "neutral"> = {
   no_answer: "red",
@@ -19,6 +25,8 @@ export function CallHistory({
   calls: Call[];
   profiles: Profile[];
 }) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const router = useRouter();
   const profileMap = Object.fromEntries(profiles.map((p) => [p.id, p]));
 
   if (calls.length === 0) {
@@ -36,6 +44,7 @@ export function CallHistory({
       {calls.map((call) => {
         const caller = profileMap[call.called_by || ""];
         const date = new Date(call.called_at);
+        const isEditing = editingId === call.id;
 
         return (
           <Card key={call.id} className="p-2.5">
@@ -50,19 +59,42 @@ export function CallHistory({
                   </span>
                 )}
               </div>
-              <span className="text-[10px] font-[family-name:var(--font-mono)] text-text-muted">
-                {date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-[family-name:var(--font-mono)] text-text-muted">
+                  {date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                </span>
+                {!isEditing && (
+                  <button
+                    onClick={() => setEditingId(call.id)}
+                    className="text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+                  >
+                    <Pencil size={10} />
+                  </button>
+                )}
+              </div>
             </div>
             {caller && (
               <div className="text-[10px] text-text-muted mb-1">
                 {caller.display_name}
               </div>
             )}
-            {call.notes && (
-              <p className="text-xs text-text-secondary leading-relaxed">
-                {call.notes}
-              </p>
+            {isEditing ? (
+              <CallHistoryEdit
+                callId={call.id}
+                initialNotes={call.notes || ""}
+                initialOutcome={call.outcome}
+                initialNextAction={call.next_action}
+                onDone={() => {
+                  setEditingId(null);
+                  router.refresh();
+                }}
+              />
+            ) : (
+              call.notes && (
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  {call.notes}
+                </p>
+              )
             )}
           </Card>
         );
