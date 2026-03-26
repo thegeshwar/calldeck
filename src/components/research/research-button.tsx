@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Radar } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { startResearch } from "@/lib/actions/leads";
 
 interface ResearchButtonProps {
@@ -23,14 +24,14 @@ export function ResearchButton({
   const [error, setError] = useState<string | null>(null);
 
   const isActive = status === "pending" || status === "running";
+  const isDone = status === "done";
   const hasFailed = status === "failed";
-  const hasResearched = status === "complete";
 
   const buttonLabel = hasFailed
-    ? "Retry Research"
-    : hasResearched
-    ? "Re-research"
-    : "Research";
+    ? "Retry"
+    : isDone
+      ? "Re-research"
+      : "Research";
 
   async function handleClick() {
     setError(null);
@@ -46,41 +47,39 @@ export function ResearchButton({
 
   if (isActive) {
     return (
-      <div className={`flex flex-col gap-2 ${className}`}>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-[3px]">
-            {Array.from({ length: totalPhases }).map((_, i) => (
-              <span
-                key={i}
-                className={`inline-block w-2 h-2 rounded-full transition-colors ${
-                  i < phasesCompleted
-                    ? "bg-purple"
-                    : "bg-bg-elevated border border-border-bright"
-                }`}
-              />
-            ))}
-          </div>
-          <span className="text-[10px] font-[family-name:var(--font-mono)] uppercase tracking-[0.8px] text-purple">
-            Researching...
-          </span>
+      <div className={`flex items-center gap-2 ${className}`}>
+        <div className="flex items-center gap-[3px]">
+          {Array.from({ length: totalPhases }).map((_, i) => (
+            <span
+              key={i}
+              className={`inline-block w-1.5 h-1.5 rounded-full transition-colors ${
+                i < phasesCompleted ? "bg-purple" : "bg-border-bright"
+              }`}
+            />
+          ))}
         </div>
+        <span className="text-[10px] font-[family-name:var(--font-mono)] uppercase tracking-[0.8px] text-purple">
+          Researching...
+        </span>
       </div>
     );
   }
 
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <button
+      <Button
+        variant="ghost"
         onClick={handleClick}
         disabled={loading}
-        className="px-4 py-2 rounded font-[family-name:var(--font-mono)] text-xs transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 bg-bg-elevated border-2 border-purple/25 text-purple hover:border-purple/60 hover:brightness-110"
+        className={`flex items-center gap-1.5 ${
+          hasFailed
+            ? "border-red text-red hover:border-red hover:bg-red-dim"
+            : "border-purple text-purple hover:border-purple hover:bg-purple-dim"
+        }`}
       >
-        <Radar
-          size={14}
-          className={loading ? "animate-spin" : ""}
-        />
+        <Radar size={12} className={loading ? "animate-spin" : ""} />
         {loading ? "Starting..." : buttonLabel}
-      </button>
+      </Button>
       {error && (
         <span className="text-[10px] font-[family-name:var(--font-mono)] text-red">
           {error}
