@@ -72,6 +72,29 @@ export interface Lead {
   google_place_id: string | null;
   latitude: number | null;
   longitude: number | null;
+  // Research fields
+  tech_stack: string[] | null;
+  page_speed_score: number | null;
+  seo_issues: string[] | null;
+  is_mobile_responsive: boolean | null;
+  is_chain: boolean | null;
+  parent_company: string | null;
+  hq_location: string | null;
+  review_summary: {
+    yelp_rating?: number;
+    bbb_rating?: number;
+    sentiment?: string;
+    review_count?: number;
+    notable_complaints?: string[];
+  } | null;
+  competitors: string[] | null;
+  research_data: {
+    news?: { title: string; url: string; date: string; summary: string }[];
+    job_postings?: { title: string; url: string; posted: string }[];
+  } | null;
+  research_brief: string | null;
+  research_status: "pending" | "running" | "done" | "failed" | null;
+  researched_at: string | null;
 }
 
 export interface Contact {
@@ -112,6 +135,20 @@ export interface Import {
   imported_by: string | null;
   lead_count: number;
   duplicates_skipped: number;
+}
+
+export interface ResearchJob {
+  id: string;
+  lead_id: string;
+  status: "pending" | "claimed" | "running" | "done" | "failed";
+  phase: string | null;
+  phases_completed: number;
+  total_phases: number;
+  created_at: string;
+  claimed_at: string | null;
+  completed_at: string | null;
+  error: string | null;
+  worker_id: string | null;
 }
 
 export interface Profile {

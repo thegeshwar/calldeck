@@ -112,6 +112,19 @@ describe("getQueuePriority", () => {
     google_place_id: null,
     latitude: null,
     longitude: null,
+    tech_stack: null,
+    page_speed_score: null,
+    seo_issues: null,
+    is_mobile_responsive: null,
+    is_chain: null,
+    parent_company: null,
+    hq_location: null,
+    review_summary: null,
+    competitors: null,
+    research_data: null,
+    research_brief: null,
+    research_status: null,
+    researched_at: null,
   };
 
   it("new leads get priority 4_000_000+", () => {
