@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { createClient } from "@/lib/supabase/server";
 
 function verifyWorkerAuth(request: NextRequest): boolean {
@@ -15,18 +16,19 @@ export async function GET(
 ) {
   const { id } = await params;
 
-  const supabase = await createClient();
-
   // Accept either worker auth or browser auth
   const isWorker = verifyWorkerAuth(request);
   if (!isWorker) {
+    const cookieClient = await createClient();
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+    } = await cookieClient.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
+
+  const supabase = createServiceClient();
 
   const { data: job, error: jobError } = await supabase
     .from("research_jobs")
