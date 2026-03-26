@@ -1,4 +1,4 @@
-"""Phase 1b: Reviews and reputation — Yelp, BBB, sentiment."""
+"""Phase 1b: Reviews and reputation — Yelp, BBB, Google, sentiment."""
 
 from worker.phases.base import run_claude
 from worker.supabase_client import update_lead
@@ -9,36 +9,30 @@ def run(lead: dict) -> dict:
     company_name = lead.get("company_name", "") or ""
     city = lead.get("city", "") or ""
     state = lead.get("state", "") or ""
+    google_rating = lead.get("google_rating")
+    google_reviews = lead.get("google_reviews")
 
     location = f"{city}, {state}".strip(", ")
 
-    prompt = f"""Use the Bash tool to research reviews and reputation for this business:
-Company: {company_name}
-Location: {location}
+    # If we already have Google data, include it
+    google_context = ""
+    if google_rating:
+        google_context = f"\nAlready known: Google rating {google_rating}/5 ({google_reviews} reviews)"
 
-Steps:
-1. Search Yelp for the business:
-   curl -s --max-time 15 -A "Mozilla/5.0" "https://www.yelp.com/search?find_desc={company_name.replace(' ', '+')}&find_loc={location.replace(' ', '+').replace(',', '%2C')}" -o /tmp/yelp.html
-   Parse /tmp/yelp.html for ratings (look for "rating" patterns like "4.5 star rating") and review counts.
+    prompt = f"""Find reviews and reputation for: {company_name} in {location}
+{google_context}
+Search for their Yelp rating, BBB rating, and overall sentiment.
 
-2. Search BBB for the business:
-   curl -s --max-time 15 -A "Mozilla/5.0" "https://www.bbb.org/search?find_country=USA&find_text={company_name.replace(' ', '+')}&find_loc={location.replace(' ', '+').replace(',', '%2C')}" -o /tmp/bbb.html
-   Parse /tmp/bbb.html for BBB rating (A+, A, B, etc.) and accreditation status.
-
-3. Based on ratings and any review snippets found, assess:
-   - Overall sentiment: "positive", "mixed", or "negative"
-   - Notable complaints: list up to 3 common complaint themes found in reviews
-
-Return ONLY this JSON, no markdown, no explanation, use null for unknown fields:
+Return ONLY this JSON:
 {{
   "yelp_rating": null,
   "bbb_rating": null,
   "review_count": null,
-  "sentiment": null,
-  "notable_complaints": []
+  "sentiment": "positive/mixed/negative",
+  "notable_complaints": ["complaint 1", "complaint 2"]
 }}"""
 
-    result = run_claude(prompt)
+    result = run_claude(prompt, allowed_tools="Bash,WebSearch,WebFetch")
 
     review_summary = {
         "yelp_rating": result.get("yelp_rating"),

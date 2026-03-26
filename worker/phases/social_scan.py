@@ -32,34 +32,25 @@ def run(lead: dict) -> dict:
     company_name = lead.get("company_name", "") or ""
     website = lead.get("website", "") or ""
 
-    prompt = f"""Use the Bash tool to find social media profiles for this business:
-Company: {company_name}
-Website: {website}
+    website_step = ""
+    if website:
+        url = website if website.startswith("http") else f"https://{website}"
+        website_step = f"First check their website for social links: curl -sL '{url}' and look for facebook.com, instagram.com, linkedin.com, twitter.com, youtube.com, tiktok.com URLs in the HTML."
 
-Steps:
-1. If website is provided, fetch it and look for social media links in the HTML:
-   curl -s --max-time 15 -L "{website}" -o /tmp/social_site.html 2>/dev/null
-   Search /tmp/social_site.html for links containing: facebook.com, instagram.com, linkedin.com, twitter.com, x.com, youtube.com, tiktok.com
+    prompt = f"""Find social media profiles for: {company_name}
+Website: {website or "none"}
 
-2. For each platform NOT found on the website, try a direct URL guess:
-   - Facebook: curl -s --max-time 10 -o /dev/null -w "%{{http_code}}" "https://www.facebook.com/{company_name.replace(' ', '')}"
-   - Instagram: curl -s --max-time 10 -o /dev/null -w "%{{http_code}}" "https://www.instagram.com/{company_name.replace(' ', '').lower()}"
+{website_step}
+Also search the web for their social media presence.
 
-3. For any profile URL found, try to get follower counts from the page HTML (look for follower/like count patterns).
-
-Return ONLY this JSON, no markdown, no explanation. For followers use null if unknown:
+Return ONLY this JSON. Only include platforms where you found a real URL:
 {{
   "profiles": [
-    {{"platform": "facebook", "url": null, "followers": null}},
-    {{"platform": "instagram", "url": null, "followers": null}},
-    {{"platform": "linkedin", "url": null, "followers": null}},
-    {{"platform": "twitter", "url": null, "followers": null}},
-    {{"platform": "youtube", "url": null, "followers": null}},
-    {{"platform": "tiktok", "url": null, "followers": null}}
+    {{"platform": "facebook", "url": "https://facebook.com/...", "followers": null}}
   ]
 }}"""
 
-    result = run_claude(prompt)
+    result = run_claude(prompt, allowed_tools="Bash,WebSearch,WebFetch")
     profiles = result.get("profiles") or []
 
     saved = []
@@ -68,7 +59,6 @@ Return ONLY this JSON, no markdown, no explanation. For followers use null if un
         url = profile.get("url")
         followers = profile.get("followers")
 
-        # Only save profiles where we actually found a URL
         if not url:
             continue
 

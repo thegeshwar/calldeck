@@ -1,10 +1,8 @@
-"""Phase 2a: Decision maker lookup via web search (Google + company website).
+"""Phase 2a: Decision maker lookup via WebSearch + company website scraping.
 
-V1: Uses curl + Google search to find decision makers without Chrome.
-V2 (future): Deep LinkedIn profile scraping via Chrome/osascript.
+Uses Claude's WebSearch tool for reliable results (no CAPTCHA issues).
+Falls back to scraping the company's own website for team/about pages.
 """
-
-import urllib.parse
 
 from worker.phases.base import run_claude
 from worker.supabase_client import update_lead, upsert_contact
@@ -16,79 +14,53 @@ def run(lead: dict, is_chain: bool = False) -> dict:
     city = lead.get("city", "") or ""
     state = lead.get("state", "") or ""
     website = lead.get("website", "") or ""
+    industry = lead.get("industry", "") or ""
     is_chain = bool(lead.get("is_chain", False))
 
     location = f"{city}, {state}".strip(", ")
 
     if is_chain:
-        strategy = f"""This is a CHAIN/FRANCHISE business ({company_name} in {location}).
-
-CRITICAL: We sell AI automation, web development, and SEO. For a franchise:
-1. FIRST find the FRANCHISE OWNER of this specific location — NOT the corporate CEO. The franchise owner is the person who actually pays for local services. Search for "{company_name} {location} owner OR franchisee OR operator"
-2. THEN find the parent company name and HQ location
-3. ALSO find a mid-level corporate contact who handles technology or marketing for franchisees (VP Marketing, Director of Digital, Regional Director) — NOT the CEO/President
-4. Mark the franchise owner as is_primary=true — they are the #1 person to call"""
+        goal = f"""Find: (1) the FRANCHISE OWNER of this specific {location} location — the person who pays for services, NOT the corporate CEO. (2) The parent company name and HQ. (3) A regional or marketing director at corporate.
+Mark the franchise owner as is_primary=true."""
     else:
-        strategy = f"""This is a LOCAL SMB ({company_name} in {location}).
+        goal = """Find the OWNER, FOUNDER, or PRESIDENT of this business — the person who writes checks and makes buying decisions. If no owner found, the General Manager or Marketing Manager works. Mark the top person as is_primary=true."""
 
-We sell AI automation, web development, and SEO. Find the person who MAKES BUYING DECISIONS:
-1. Owner, Founder, or President — the person who writes checks
-2. If no owner found, look for General Manager or Marketing Manager
-3. The decision maker is NOT a receptionist or front desk person
-4. Find their full name, title, and LinkedIn URL if possible
-5. Mark the top decision maker as is_primary=true"""
+    website_step = ""
+    if website:
+        url = website if website.startswith("http") else f"https://{website}"
+        website_step = f"""
+ALSO check their website for team/about info:
+- curl -sL "{url}" and look for owner/team names in the homepage
+- curl -sL "{url}/about" or "{url}/about-us" or "{url}/team" and look for names and titles"""
 
-    # Build the search queries
-    company_encoded = urllib.parse.quote(company_name)
-    location_encoded = urllib.parse.quote(location)
-
-    prompt = f"""You are a sales researcher. Find the DECISION MAKER at this business — the person who would buy AI automation, web development, or SEO services.
+    prompt = f"""Find the decision maker at this business who would buy AI automation, web dev, or SEO services.
 
 Company: {company_name}
 Location: {location}
+Industry: {industry or "unknown"}
 Website: {website or "none"}
-{strategy}
 
-Use these search strategies IN ORDER (stop once you find good results):
+GOAL: {goal}
 
-**Strategy 1: Google for LinkedIn profiles**
-curl -sL -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36" "https://www.google.com/search?q=%22{company_encoded}%22+%22{location_encoded}%22+owner+OR+manager+OR+director+site%3Alinkedin.com" -o /tmp/dm_search.html
-cat /tmp/dm_search.html | grep -oP '(?<=<a href="/url\\?q=)[^"&]+linkedin[^"&]+' | head -10
-cat /tmp/dm_search.html | grep -oP '[A-Z][a-z]+ [A-Z][a-z]+' | head -20
-
-**Strategy 2: Google for company leadership**
-curl -sL -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36" "https://www.google.com/search?q=%22{company_encoded}%22+owner+OR+%22general+manager%22+OR+founder+%22{location_encoded}%22" -o /tmp/dm_google.html
-Read /tmp/dm_google.html for names and titles.
-
-**Strategy 3: Company website team/about page**
-{"curl -sL -A 'Mozilla/5.0' '" + website + "/about' -o /tmp/about.html && cat /tmp/about.html | grep -iP 'owner|manager|director|founder|ceo|president' | head -10" if website else "# No website — skip this step"}
-
-**Strategy 4: Check if this is a chain**
-curl -sL -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36" "https://www.google.com/search?q=%22{company_encoded}%22+franchise+OR+chain+OR+%22corporate+headquarters%22" -o /tmp/chain_check.html
-Read /tmp/chain_check.html to determine if this is a franchise/chain. If so, find the parent company name and HQ location.
-
-IMPORTANT:
-- Find REAL names and titles, not generic descriptions
-- If you find LinkedIn URLs, include them
-- If you can identify whether this is a chain/franchise, set is_chain accordingly
-- The decision maker for an SMB is typically the owner or GM
-- The decision maker for a chain is typically a VP or Director at corporate
-
-Return ONLY this JSON, no markdown, no explanation:
+Search for: "{company_name}" "{location}" owner OR founder OR president OR manager
+Also search: "{company_name}" owner site:linkedin.com
+{website_step}
+Return ONLY this JSON:
 {{
   "company_found": true,
   "linkedin_url": null,
-  "is_chain": false,
+  "is_chain": {str(is_chain).lower()},
   "parent_company": null,
   "hq_location": null,
   "decision_makers": [
-    {{"name": "John Smith", "title": "Owner", "linkedin_url": "https://linkedin.com/in/...", "is_primary": true}}
+    {{"name": "Jane Doe", "title": "Owner", "linkedin_url": null, "is_primary": true}}
   ]
 }}
 
-Use null for fields you cannot find. decision_makers can be empty [] if nobody found."""
+Use null for unknown fields. decision_makers can be empty [] if nobody found."""
 
-    result = run_claude(prompt)
+    # Use WebSearch + Bash so Claude can both search the web and curl websites
+    result = run_claude(prompt, allowed_tools="Bash,WebSearch,WebFetch")
 
     # Update lead with chain info
     lead_update = {}
