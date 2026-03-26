@@ -68,7 +68,7 @@ export function ResearchButton({
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
       <Button
-        variant="ghost"
+        variant={hasFailed ? "ghost" : "research"}
         onClick={handleClick}
         disabled={loading}
         className={`flex items-center gap-1.5 ${
