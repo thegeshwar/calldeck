@@ -61,8 +61,8 @@ def _build_context(lead: dict) -> str:
         if hq:
             lines.append(f"HQ: {hq}")
 
-    # Contacts (injected separately if available)
-    contacts = lead.get("_contacts") or []
+    # Contacts (from Supabase join)
+    contacts = lead.get("contacts") or lead.get("_contacts") or []
     if contacts:
         lines.append("Key Contacts:")
         for c in contacts[:3]:
