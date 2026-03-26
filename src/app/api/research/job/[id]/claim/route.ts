@@ -21,7 +21,7 @@ export async function POST(
 
   const supabase = createServiceClient();
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const { worker_id } = body;
 
   // Check job exists and is pending

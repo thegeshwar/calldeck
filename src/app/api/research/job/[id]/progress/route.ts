@@ -21,7 +21,7 @@ export async function POST(
 
   const supabase = createServiceClient();
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const { phase, phases_completed } = body;
 
   const { error: updateError } = await supabase

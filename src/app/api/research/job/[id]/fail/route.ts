@@ -21,7 +21,7 @@ export async function POST(
 
   const supabase = createServiceClient();
 
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
   const { error: errorMessage } = body;
 
   // Get job to find lead_id
