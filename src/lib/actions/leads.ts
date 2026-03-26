@@ -145,3 +145,39 @@ export async function assignLead(id: string, userId: string) {
   revalidatePath(`/leads/${id}`);
   revalidatePath("/leads");
 }
+
+export async function startResearch(leadId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  // Check not already running
+  const { data: lead } = await supabase
+    .from("leads")
+    .select("research_status")
+    .eq("id", leadId)
+    .single();
+
+  if (!lead) throw new Error("Lead not found");
+  if (lead.research_status === "pending" || lead.research_status === "running") {
+    throw new Error("Research already in progress");
+  }
+
+  // Create job — triggers SSE stream via Supabase Realtime
+  const { error: jobError } = await supabase
+    .from("research_jobs")
+    .insert({ lead_id: leadId });
+
+  if (jobError) throw new Error(jobError.message);
+
+  // Mark lead as pending
+  await supabase
+    .from("leads")
+    .update({ research_status: "pending" })
+    .eq("id", leadId);
+
+  revalidatePath(`/leads/${leadId}`);
+  revalidatePath("/queue");
+}
