@@ -2,6 +2,7 @@ import { ButtonHTMLAttributes } from "react";
 
 const VARIANTS = {
   call: "bg-green text-black font-bold uppercase tracking-[2px] text-xs shadow-[0_4px_0_#15803d] hover:shadow-[0_2px_0_#15803d] hover:translate-y-[2px] active:shadow-none active:translate-y-[4px] attn",
+  research: "bg-purple text-white font-bold uppercase tracking-[2px] text-xs shadow-[0_4px_0_#6d28d9] hover:shadow-[0_2px_0_#6d28d9] hover:translate-y-[2px] active:shadow-none active:translate-y-[4px]",
   primary: "bg-green text-black font-bold uppercase tracking-[2px] text-xs hover:brightness-110",
   ghost: "bg-bg-elevated border-2 border-border text-text-secondary hover:border-border-bright hover:text-text-primary",
 };
