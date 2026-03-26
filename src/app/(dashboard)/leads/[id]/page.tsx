@@ -14,6 +14,7 @@ import { ArrowLeft, MapPin } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { LogCallButton } from "./log-call-button";
+import { IntelCard } from "@/components/research/intel-card";
 
 const TEMP_COLORS = { hot: "red" as const, warm: "amber" as const, cold: "blue" as const };
 const STATUS_COLORS: Record<string, "green" | "amber" | "red" | "blue" | "purple" | "neutral"> = {
@@ -55,6 +56,7 @@ export default async function LeadProfilePage({
           <ContactsList leadId={lead.id} contacts={lead.contacts} />
           <SocialProfiles leadId={lead.id} profiles={lead.social_profiles} />
           <PipelineInfo lead={lead} profiles={(profiles as Profile[]) || []} />
+          <IntelCard lead={lead} />
         </div>
 
         {/* Right: Activity */}
