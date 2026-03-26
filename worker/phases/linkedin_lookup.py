@@ -9,7 +9,7 @@ from worker.config import LINKEDIN_CHROME_PROFILE
 LINKEDIN_TIMEOUT = 180
 
 
-def run(lead: dict) -> dict:
+def run(lead: dict, is_chain: bool = False) -> dict:
     lead_id = lead["id"]
     company_name = lead.get("company_name", "") or ""
     city = lead.get("city", "") or ""

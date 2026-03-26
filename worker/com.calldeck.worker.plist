@@ -25,15 +25,15 @@
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
-        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <string>/Users/thegeshwar/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
         <key>CALLDECK_URL</key>
         <string>https://calldeck.thegeshwar.com</string>
         <key>CALLDECK_WORKER_KEY</key>
-        <string>WORKER_KEY_HERE</string>
+        <string>dbdc39eba733f19bea4def929b89d6513c7501df586050b0</string>
         <key>SUPABASE_URL</key>
         <string>https://api.qms.thegeshwar.com</string>
         <key>SUPABASE_SERVICE_KEY</key>
-        <string>SERVICE_KEY_HERE</string>
+        <string>eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU</string>
     </dict>
 </dict>
 </plist>

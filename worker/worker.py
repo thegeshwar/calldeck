@@ -35,6 +35,20 @@ def api(base_url: str, key: str, method: str, path: str, body=None) -> dict:
         return resp.json()
 
 
+def get_pending_jobs() -> list[dict]:
+    """Fetch pending research jobs directly from Supabase."""
+    url = f"{SUPABASE_URL}/rest/v1/research_jobs"
+    headers = {
+        "apikey": SUPABASE_SERVICE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+    }
+    params = {"status": "eq.pending", "order": "created_at.asc"}
+    with httpx.Client(timeout=15) as client:
+        resp = client.get(url, headers=headers, params=params)
+        resp.raise_for_status()
+        return resp.json()
+
+
 def get_lead_fresh(lead_id: str) -> dict:
     """Fetch current lead from Supabase directly (bypasses CalldDeck API).
 
@@ -149,7 +163,8 @@ def process_job(base_url: str, key: str, job_id: str):
 
         # 2. Get job + lead
         job_data = api(base_url, key, "GET", f"/api/research/job/{job_id}")
-        lead = job_data.get("lead") or job_data
+        job_obj = job_data.get("job", job_data)
+        lead = job_obj.get("lead") or job_data.get("lead") or job_data
 
         # 3. Execute research pipeline
         execute_research(base_url, key, job_id, lead)
@@ -181,6 +196,16 @@ def listen(base_url: str, key: str):
 
     while True:
         try:
+            # Poll for pending jobs before connecting to stream (catchup)
+            try:
+                pending = get_pending_jobs()
+                if pending:
+                    print(f"[worker] catchup: found {len(pending)} pending job(s)", flush=True)
+                    for job in pending:
+                        process_job(base_url, key, str(job["id"]))
+            except Exception as exc:
+                print(f"[worker] catchup poll failed (non-fatal): {exc}", flush=True)
+
             print(f"[worker] connecting to {stream_url}", flush=True)
             with httpx.Client(timeout=httpx.Timeout(connect=10, read=60, write=10, pool=10)) as client:
                 with client.stream("GET", stream_url, headers=headers) as resp:
@@ -200,8 +225,11 @@ def listen(base_url: str, key: str):
                             print(f"[worker] bad JSON in SSE: {exc} — raw={raw!r}", flush=True)
                             continue
 
-                        job_id = payload.get("job_id") or payload.get("id")
+                        # Stream sends {"type":"job","job":{...}} or {"job_id":"..."}
+                        job_data = payload.get("job") or {}
+                        job_id = job_data.get("id") or payload.get("job_id") or payload.get("id")
                         if job_id:
+                            print(f"[worker] received job: {job_id}", flush=True)
                             process_job(base_url, key, str(job_id))
                         else:
                             print(f"[worker] SSE event (no job_id): {payload}", flush=True)
