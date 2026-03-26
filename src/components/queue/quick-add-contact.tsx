@@ -17,6 +17,7 @@ export function QuickAddContact({
   const [title, setTitle] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [linkedin, setLinkedin] = useState("");
   const [isPrimary, setIsPrimary] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -29,6 +30,7 @@ export function QuickAddContact({
       title: title.trim() || undefined,
       direct_phone: phone.trim() || undefined,
       email: email.trim() || undefined,
+      linkedin: linkedin.trim() || undefined,
       is_primary: isPrimary,
     });
 
@@ -73,6 +75,13 @@ export function QuickAddContact({
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="Email"
+        className={inputClass}
+      />
+      <input
+        type="url"
+        value={linkedin}
+        onChange={(e) => setLinkedin(e.target.value)}
+        placeholder="LinkedIn URL"
         className={inputClass}
       />
       <label className="flex items-center gap-2 text-xs text-text-secondary cursor-pointer">

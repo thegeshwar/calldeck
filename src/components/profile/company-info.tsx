@@ -9,10 +9,14 @@ import { updateLead } from "@/lib/actions/leads";
 import { useRouter } from "next/navigation";
 
 const FIELDS: { key: keyof Lead; label: string; icon: typeof Building2; type?: string }[] = [
+  { key: "company_name", label: "Company", icon: Building2 },
   { key: "industry", label: "Industry", icon: Building2 },
   { key: "phone", label: "Phone", icon: Phone },
   { key: "email", label: "Email", icon: Mail },
   { key: "address", label: "Address", icon: MapPin },
+  { key: "city", label: "City", icon: MapPin },
+  { key: "state", label: "State", icon: MapPin },
+  { key: "website", label: "Website", icon: Globe },
   { key: "employee_count", label: "Employees", icon: Users, type: "number" },
   { key: "revenue_estimate", label: "Revenue", icon: DollarSign },
   { key: "source", label: "Source", icon: FileText },
@@ -53,7 +57,10 @@ export function CompanyInfo({ lead }: { lead: Lead }) {
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
                     onBlur={() => save(key)}
-                    onKeyDown={(e) => e.key === "Enter" && save(key)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") save(key);
+                      if (e.key === "Escape") setEditing(null);
+                    }}
                     autoFocus
                     className="w-full bg-bg-surface border border-border-bright rounded px-1.5 py-0.5 text-xs text-text-primary outline-none"
                   />
@@ -65,33 +72,22 @@ export function CompanyInfo({ lead }: { lead: Lead }) {
                     }}
                     className="text-xs text-text-primary cursor-pointer hover:text-green truncate"
                   >
-                    {display}
+                    {key === "website" && val ? (
+                      <span className="flex items-center gap-1">
+                        <span className="text-cyan truncate">
+                          {String(val).replace(/^https?:\/\//, "")}
+                        </span>
+                        {lead.website_quality && <QualityDots rating={lead.website_quality} />}
+                      </span>
+                    ) : (
+                      display
+                    )}
                   </div>
                 )}
               </div>
             </div>
           );
         })}
-      </div>
-
-      {/* Website assessment */}
-      <div className="flex items-start gap-2 pt-2 border-t border-border">
-        <Globe size={12} className="text-cyan mt-0.5 shrink-0" />
-        <div className="min-w-0 flex-1">
-          <div className="text-[10px] text-text-muted font-[family-name:var(--font-mono)]">Website</div>
-          <div className="flex items-center gap-2">
-            {lead.website ? (
-              <a href={lead.website.startsWith("http") ? lead.website : `https://${lead.website}`}
-                target="_blank" rel="noopener noreferrer"
-                className="text-xs text-cyan hover:underline truncate">
-                {lead.website.replace(/^https?:\/\//, "")}
-              </a>
-            ) : (
-              <span className="text-xs text-text-muted">—</span>
-            )}
-            {lead.website_quality && <QualityDots rating={lead.website_quality} />}
-          </div>
-        </div>
       </div>
     </Card>
   );

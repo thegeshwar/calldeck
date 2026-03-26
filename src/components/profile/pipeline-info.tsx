@@ -15,6 +15,8 @@ const STATUS_COLORS: Record<LeadStatus, "green" | "amber" | "red" | "blue" | "pu
   proposal_sent: "purple", won: "green", lost: "red",
 };
 
+const textareaCls = "w-full bg-bg-surface border border-border-bright rounded px-1.5 py-0.5 text-xs text-text-primary outline-none min-h-[60px] resize-none";
+
 export function PipelineInfo({
   lead,
   profiles,
@@ -25,6 +27,10 @@ export function PipelineInfo({
   const router = useRouter();
   const [editingServices, setEditingServices] = useState(false);
   const [services, setServices] = useState((lead.interested_services || []).join(", "));
+  const [editingObjections, setEditingObjections] = useState(false);
+  const [objections, setObjections] = useState(lead.objections || "");
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notes, setNotes] = useState(lead.notes || "");
 
   async function changeStatus(status: LeadStatus) {
     await updateLeadStatus(lead.id, status);
@@ -46,6 +52,18 @@ export function PipelineInfo({
       interested_services: services.split(",").map((s) => s.trim()).filter(Boolean),
     });
     setEditingServices(false);
+    router.refresh();
+  }
+
+  async function saveObjections() {
+    await updateLead(lead.id, { objections: objections || undefined });
+    setEditingObjections(false);
+    router.refresh();
+  }
+
+  async function saveNotes() {
+    await updateLead(lead.id, { notes: notes || undefined });
+    setEditingNotes(false);
     router.refresh();
   }
 
@@ -104,7 +122,7 @@ export function PipelineInfo({
         {editingServices ? (
           <div className="flex gap-1.5">
             <input value={services} onChange={(e) => setServices(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && saveServices()}
+              onKeyDown={(e) => { if (e.key === "Enter") saveServices(); if (e.key === "Escape") setEditingServices(false); }}
               className="flex-1 bg-bg-surface border border-border-bright rounded px-2 py-1 text-xs text-text-primary outline-none"
               placeholder="AI Search, Websites, Automation" autoFocus />
             <button onClick={saveServices} className="text-[10px] text-green cursor-pointer">Save</button>
@@ -117,12 +135,54 @@ export function PipelineInfo({
       </div>
 
       {/* Objections */}
-      {lead.objections && (
-        <div>
-          <div className="text-[10px] text-text-muted mb-1">Objections</div>
-          <p className="text-xs text-red">{lead.objections}</p>
-        </div>
-      )}
+      <div>
+        <div className="text-[10px] text-text-muted mb-1">Objections</div>
+        {editingObjections ? (
+          <div className="space-y-1">
+            <textarea
+              value={objections}
+              onChange={(e) => setObjections(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Escape") { setObjections(lead.objections || ""); setEditingObjections(false); } }}
+              className={textareaCls}
+              placeholder="Enter objections..."
+              autoFocus
+            />
+            <div className="flex gap-1.5">
+              <button onClick={saveObjections} className="text-[10px] text-green cursor-pointer">Save</button>
+              <button onClick={() => { setObjections(lead.objections || ""); setEditingObjections(false); }} className="text-[10px] text-text-muted cursor-pointer">Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <div onClick={() => setEditingObjections(true)} className="cursor-pointer text-xs text-red hover:opacity-80">
+            {lead.objections || <span className="text-text-muted italic">Click to add</span>}
+          </div>
+        )}
+      </div>
+
+      {/* Notes */}
+      <div>
+        <div className="text-[10px] text-text-muted mb-1">Notes</div>
+        {editingNotes ? (
+          <div className="space-y-1">
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Escape") { setNotes(lead.notes || ""); setEditingNotes(false); } }}
+              className={textareaCls}
+              placeholder="Enter notes..."
+              autoFocus
+            />
+            <div className="flex gap-1.5">
+              <button onClick={saveNotes} className="text-[10px] text-green cursor-pointer">Save</button>
+              <button onClick={() => { setNotes(lead.notes || ""); setEditingNotes(false); }} className="text-[10px] text-text-muted cursor-pointer">Cancel</button>
+            </div>
+          </div>
+        ) : (
+          <div onClick={() => setEditingNotes(true)} className="cursor-pointer text-xs text-text-primary hover:text-green">
+            {lead.notes || <span className="text-text-muted italic">Click to add</span>}
+          </div>
+        )}
+      </div>
     </Card>
   );
 }
