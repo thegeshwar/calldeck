@@ -26,7 +26,7 @@ def api(base_url: str, key: str, method: str, path: str, body=None) -> dict:
     """HTTP client for CalldDeck API. Uses httpx with 30s timeout."""
     url = f"{base_url}{path}"
     headers = {
-        "x-worker-key": key,
+        "Authorization": f"Bearer {key}",
         "Content-Type": "application/json",
     }
     with httpx.Client(timeout=30) as client:
@@ -174,7 +174,7 @@ def listen(base_url: str, key: str):
     """Persistent SSE connection to /api/research/stream. Auto-reconnects on errors."""
     stream_url = f"{base_url}/api/research/stream"
     headers = {
-        "x-worker-key": key,
+        "Authorization": f"Bearer {key}",
         "Accept": "text/event-stream",
         "Cache-Control": "no-cache",
     }
