@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { QualityDots } from "@/components/ui/quality-dots";
 import { skipLead, snoozeLead, clearFollowup } from "@/lib/actions/leads";
 import { QuickAddContact } from "./quick-add-contact";
+import { IntelStrip } from "@/components/research/intel-strip";
 import Link from "next/link";
 
 const SNOOZE_OPTIONS = [
@@ -245,6 +246,9 @@ export function LeadCard({
           )}
         </div>
       )}
+
+      {/* Intel */}
+      <IntelStrip lead={lead} primaryContact={primaryContact} />
 
       {/* Action buttons */}
       <div className="flex items-center gap-2">
