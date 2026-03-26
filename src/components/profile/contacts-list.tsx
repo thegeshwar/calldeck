@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, Plus, Star, Trash2 } from "lucide-react";
+import { User, Plus, Star, Trash2, Phone, Mail, ExternalLink } from "lucide-react";
 import { Contact } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -63,12 +63,21 @@ export function ContactsList({
               {c.is_primary && <Star size={10} className="text-amber fill-amber" />}
             </div>
             {c.title && <div className="text-[10px] text-text-secondary">{c.title}</div>}
-            <div className="flex gap-3 mt-0.5">
+            <div className="flex flex-wrap gap-3 mt-1">
               {c.direct_phone && (
-                <span className="text-[10px] font-[family-name:var(--font-mono)] text-green">{c.direct_phone}</span>
+                <a href={`tel:${c.direct_phone}`} className="flex items-center gap-1 text-[10px] font-[family-name:var(--font-mono)] text-green hover:underline">
+                  <Phone size={9} /> {c.direct_phone}
+                </a>
               )}
               {c.email && (
-                <span className="text-[10px] text-text-muted truncate">{c.email}</span>
+                <a href={`mailto:${c.email}`} className="flex items-center gap-1 text-[10px] font-[family-name:var(--font-mono)] text-cyan hover:underline truncate">
+                  <Mail size={9} /> {c.email}
+                </a>
+              )}
+              {c.linkedin && (
+                <a href={c.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[10px] font-[family-name:var(--font-mono)] text-blue hover:underline">
+                  <ExternalLink size={9} /> LinkedIn
+                </a>
               )}
             </div>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Phone, Globe, MapPin, Users, ExternalLink, User, Clock, Plus, X } from "lucide-react";
+import { Phone, Globe, MapPin, Users, ExternalLink, User, Clock, Plus, X, Mail } from "lucide-react";
 import { LeadWithRelations, OUTCOME_LABELS } from "@/lib/types";
 import { todayLocal } from "@/lib/queue-logic";
 import { Pill } from "@/components/ui/pill";
@@ -122,58 +122,79 @@ export function LeadCard({
         </div>
       </div>
 
-      {/* Info grid */}
-      <div className="grid grid-cols-2 gap-3">
-        {/* Decision Maker */}
-        <Card>
-          <div className="flex items-center justify-between mb-1.5">
-            <div className="text-[10px] font-[family-name:var(--font-mono)] uppercase tracking-[0.8px] text-text-muted">
-              Decision Maker
-            </div>
-            <button
-              onClick={() => setShowAddContact(!showAddContact)}
-              className="text-text-muted hover:text-green transition-colors cursor-pointer"
-            >
-              <Plus size={14} />
-            </button>
+      {/* Contacts + Info grid */}
+      {/* Contacts card — full width */}
+      <Card>
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-[10px] font-[family-name:var(--font-mono)] uppercase tracking-[0.8px] text-text-muted">
+            Contacts
           </div>
-          {primaryContact ? (
-            <div>
-              <div className="flex items-center gap-1.5 text-sm text-text-primary">
-                <User size={12} /> {primaryContact.name || "Unknown"}
+          <button
+            onClick={() => setShowAddContact(!showAddContact)}
+            className="text-text-muted hover:text-green transition-colors cursor-pointer"
+          >
+            <Plus size={14} />
+          </button>
+        </div>
+        {lead.contacts.length > 0 ? (
+          <div className="space-y-2">
+            {lead.contacts.map((c) => (
+              <div key={c.id} className="flex items-start gap-2">
+                <User size={12} className={c.is_primary ? "text-green mt-0.5 shrink-0" : "text-text-muted mt-0.5 shrink-0"} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm ${c.is_primary ? "text-text-primary font-semibold" : "text-text-secondary"}`}>
+                      {c.name || "Unknown"}
+                    </span>
+                    {c.title && (
+                      <span className="text-[10px] font-[family-name:var(--font-mono)] text-text-muted truncate">
+                        {c.title}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-3 mt-0.5">
+                    {c.direct_phone && (
+                      <a href={`tel:${c.direct_phone}`} className="flex items-center gap-1 text-[10px] font-[family-name:var(--font-mono)] text-green hover:underline">
+                        <Phone size={9} /> {c.direct_phone}
+                      </a>
+                    )}
+                    {c.email && (
+                      <a href={`mailto:${c.email}`} className="flex items-center gap-1 text-[10px] font-[family-name:var(--font-mono)] text-cyan hover:underline">
+                        <Mail size={9} /> {c.email}
+                      </a>
+                    )}
+                    {c.linkedin && (
+                      <a href={c.linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[10px] font-[family-name:var(--font-mono)] text-blue hover:underline">
+                        <ExternalLink size={9} /> LinkedIn
+                      </a>
+                    )}
+                  </div>
+                </div>
               </div>
-              {primaryContact.title && (
-                <div className="text-xs text-text-secondary mt-0.5">{primaryContact.title}</div>
-              )}
-            </div>
-          ) : (
-            <div className="text-xs text-text-muted">No contact added</div>
-          )}
-          {showAddContact && (
-            <QuickAddContact
-              leadId={lead.id}
-              onDone={() => setShowAddContact(false)}
-            />
-          )}
-        </Card>
-
-        {/* Phone */}
-        <Card>
-          <div className="text-[10px] font-[family-name:var(--font-mono)] uppercase tracking-[0.8px] text-text-muted mb-1.5">
-            Phone
+            ))}
           </div>
-          <div className="flex items-center gap-1.5">
+        ) : (
+          <div className="text-xs text-text-muted">No contacts yet</div>
+        )}
+        {/* Company phone — show if no contact has it */}
+        {lead.phone && !lead.contacts.some((c) => c.direct_phone === lead.phone) && (
+          <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-border">
             <Phone size={12} className="text-green" />
-            <span className="text-base font-[family-name:var(--font-mono)] font-bold text-green">
-              {lead.phone || "—"}
+            <span className="text-sm font-[family-name:var(--font-mono)] font-bold text-green">
+              {lead.phone}
             </span>
+            <span className="text-[10px] font-[family-name:var(--font-mono)] text-text-muted">Company</span>
           </div>
-          {primaryContact?.direct_phone && primaryContact.direct_phone !== lead.phone && (
-            <div className="text-[10px] text-text-muted mt-1 font-[family-name:var(--font-mono)]">
-              Direct: {primaryContact.direct_phone}
-            </div>
-          )}
-        </Card>
+        )}
+        {showAddContact && (
+          <QuickAddContact
+            leadId={lead.id}
+            onDone={() => setShowAddContact(false)}
+          />
+        )}
+      </Card>
+
+      <div className="grid grid-cols-2 gap-3">
 
         {/* Website */}
         <Card>
