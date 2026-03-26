@@ -1,8 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Cpu, User, Zap, AlertTriangle, Phone, Mail } from "lucide-react";
 import { Lead, Contact } from "@/lib/types";
 import { ResearchButton } from "./research-button";
+import { createClient } from "@/lib/supabase/client";
 
 interface IntelStripProps {
   lead: Lead;
@@ -11,16 +14,52 @@ interface IntelStripProps {
 }
 
 export function IntelStrip({ lead, contacts = [], primaryContact }: IntelStripProps) {
-  const researchDone = lead.research_status === "done";
-  const researchRunning =
-    lead.research_status === "pending" || lead.research_status === "running";
+  const router = useRouter();
+  const [liveStatus, setLiveStatus] = useState(lead.research_status);
+
+  useEffect(() => {
+    setLiveStatus(lead.research_status);
+  }, [lead.research_status]);
+
+  useEffect(() => {
+    if (liveStatus !== "pending" && liveStatus !== "running") return;
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`intel-${lead.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "leads",
+          filter: `id=eq.${lead.id}`,
+        },
+        (payload) => {
+          const newStatus = payload.new.research_status;
+          if (newStatus && newStatus !== liveStatus) {
+            setLiveStatus(newStatus);
+            if (newStatus === "done" || newStatus === "failed") {
+              router.refresh();
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [lead.id, liveStatus, router]);
+
+  const researchDone = liveStatus === "done";
 
   // No research or still running — delegate entirely to ResearchButton
   if (!researchDone) {
     return (
       <ResearchButton
         leadId={lead.id}
-        status={lead.research_status}
+        status={liveStatus}
       />
     );
   }
@@ -51,7 +90,7 @@ export function IntelStrip({ lead, contacts = [], primaryContact }: IntelStripPr
         </div>
         <ResearchButton
           leadId={lead.id}
-          status={lead.research_status}
+          status={liveStatus}
           className="!p-0"
         />
       </div>

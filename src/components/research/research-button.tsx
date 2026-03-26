@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Radar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { startResearch } from "@/lib/actions/leads";
+import { createClient } from "@/lib/supabase/client";
 
 interface ResearchButtonProps {
   leadId: string;
@@ -22,10 +23,41 @@ export function ResearchButton({
 }: ResearchButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentStatus, setCurrentStatus] = useState(status);
 
-  const isActive = status === "pending" || status === "running";
-  const isDone = status === "done";
-  const hasFailed = status === "failed";
+  useEffect(() => {
+    setCurrentStatus(status);
+  }, [status]);
+
+  useEffect(() => {
+    if (currentStatus !== "pending" && currentStatus !== "running") return;
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`research-${leadId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "leads",
+          filter: `id=eq.${leadId}`,
+        },
+        (payload) => {
+          const newStatus = payload.new.research_status;
+          if (newStatus) setCurrentStatus(newStatus);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [leadId, currentStatus]);
+
+  const isActive = currentStatus === "pending" || currentStatus === "running";
+  const isDone = currentStatus === "done";
+  const hasFailed = currentStatus === "failed";
 
   const buttonLabel = hasFailed
     ? "Retry"
@@ -48,17 +80,17 @@ export function ResearchButton({
   if (isActive) {
     return (
       <div className={`flex items-center gap-2 ${className}`}>
-        <div className="flex items-center gap-[3px]">
+        <div className="flex gap-0.5">
           {Array.from({ length: totalPhases }).map((_, i) => (
             <span
               key={i}
-              className={`inline-block w-1.5 h-1.5 rounded-full transition-colors ${
-                i < phasesCompleted ? "bg-purple" : "bg-border-bright"
+              className={`inline-block w-1.5 h-1.5 rounded-full ${
+                i < phasesCompleted ? "bg-purple" : "bg-border-bright animate-pulse"
               }`}
             />
           ))}
         </div>
-        <span className="text-[10px] font-[family-name:var(--font-mono)] uppercase tracking-[0.8px] text-purple">
+        <span className="text-[10px] font-[family-name:var(--font-mono)] text-purple uppercase tracking-wider animate-pulse">
           Researching...
         </span>
       </div>

@@ -1,9 +1,12 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { LeadWithRelations } from "@/lib/types";
 import { Card } from "@/components/ui/card";
 import { Pill } from "@/components/ui/pill";
 import { ResearchButton } from "./research-button";
+import { createClient } from "@/lib/supabase/client";
 import {
   Globe,
   Zap,
@@ -37,8 +40,46 @@ function Section({
 }
 
 export function IntelCard({ lead }: { lead: LeadWithRelations }) {
-  const hasResearch = lead.research_status === "done";
-  const hasFailed = lead.research_status === "failed";
+  const router = useRouter();
+  const [liveStatus, setLiveStatus] = useState(lead.research_status);
+
+  useEffect(() => {
+    setLiveStatus(lead.research_status);
+  }, [lead.research_status]);
+
+  useEffect(() => {
+    if (liveStatus !== "pending" && liveStatus !== "running") return;
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`intel-card-${lead.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "leads",
+          filter: `id=eq.${lead.id}`,
+        },
+        (payload) => {
+          const newStatus = payload.new.research_status;
+          if (newStatus && newStatus !== liveStatus) {
+            setLiveStatus(newStatus);
+            if (newStatus === "done" || newStatus === "failed") {
+              router.refresh();
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [lead.id, liveStatus, router]);
+
+  const hasResearch = liveStatus === "done";
+  const hasFailed = liveStatus === "failed";
 
   if (!hasResearch) {
     return (
@@ -56,7 +97,7 @@ export function IntelCard({ lead }: { lead: LeadWithRelations }) {
               Click Research to build a dossier on this lead.
             </p>
           )}
-          <ResearchButton leadId={lead.id} status={lead.research_status} />
+          <ResearchButton leadId={lead.id} status={liveStatus} />
         </div>
       </Card>
     );
@@ -92,7 +133,7 @@ export function IntelCard({ lead }: { lead: LeadWithRelations }) {
               </span>
             )}
           </div>
-          <ResearchButton leadId={lead.id} status={lead.research_status} />
+          <ResearchButton leadId={lead.id} status={liveStatus} />
         </div>
 
         {/* Research Brief */}
