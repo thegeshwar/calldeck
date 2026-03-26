@@ -182,10 +182,12 @@ def listen(base_url: str, key: str):
     while True:
         try:
             print(f"[worker] connecting to {stream_url}", flush=True)
-            with httpx.Client(timeout=None) as client:
+            with httpx.Client(timeout=httpx.Timeout(connect=10, read=60, write=10, pool=10)) as client:
                 with client.stream("GET", stream_url, headers=headers) as resp:
-                    resp.raise_for_status()
-                    print("[worker] SSE stream connected", flush=True)
+                    if resp.status_code != 200:
+                        print(f"[worker] stream returned {resp.status_code}", flush=True)
+                        break
+                    print(f"[worker] SSE stream connected (status={resp.status_code})", flush=True)
                     for line in resp.iter_lines():
                         if not line.startswith("data:"):
                             continue
