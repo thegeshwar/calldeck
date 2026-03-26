@@ -1,15 +1,19 @@
 """Base class for research phases."""
 
 import json
+import os
 import re
+import shutil
 import subprocess
 from worker.config import PHASE_TIMEOUT
+
+CLAUDE_BIN = shutil.which("claude") or os.path.expanduser("~/.local/bin/claude")
 
 
 def run_claude(prompt: str, allowed_tools: str = "Bash", timeout: int | None = None) -> dict:
     """Run Claude CLI with a prompt. Returns parsed JSON output."""
     result = subprocess.run(
-        ["claude", "-p", prompt, "--allowedTools", allowed_tools],
+        [CLAUDE_BIN, "-p", prompt, "--allowedTools", allowed_tools],
         capture_output=True,
         text=True,
         timeout=timeout or PHASE_TIMEOUT,
