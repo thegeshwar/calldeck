@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.calldeck.worker</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/opt/homebrew/bin/python3</string>
+        <string>-u</string>
+        <string>-m</string>
+        <string>worker.worker</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/thegeshwar/calldeck</string>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/Users/thegeshwar/calldeck/worker/logs/worker_stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/thegeshwar/calldeck/worker/logs/worker_stderr.log</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>CALLDECK_URL</key>
+        <string>https://calldeck.thegeshwar.com</string>
+        <key>CALLDECK_WORKER_KEY</key>
+        <string>WORKER_KEY_HERE</string>
+        <key>SUPABASE_URL</key>
+        <string>https://api.qms.thegeshwar.com</string>
+        <key>SUPABASE_SERVICE_KEY</key>
+        <string>SERVICE_KEY_HERE</string>
+    </dict>
+</dict>
+</plist>
