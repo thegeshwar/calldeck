@@ -21,16 +21,22 @@ def run(lead: dict, is_chain: bool = False) -> dict:
     location = f"{city}, {state}".strip(", ")
 
     if is_chain:
-        strategy = """This is a CHAIN/FRANCHISE business. Your goal:
-1. Find the PARENT COMPANY (corporate HQ)
-2. Find corporate decision makers: VP of Marketing, Director of Digital, Director of Operations, or Regional Manager
-3. Get the HQ location
-4. These are the people who would approve AI automation or web dev for the whole chain"""
+        strategy = f"""This is a CHAIN/FRANCHISE business ({company_name} in {location}).
+
+CRITICAL: We sell AI automation, web development, and SEO. For a franchise:
+1. FIRST find the FRANCHISE OWNER of this specific location — NOT the corporate CEO. The franchise owner is the person who actually pays for local services. Search for "{company_name} {location} owner OR franchisee OR operator"
+2. THEN find the parent company name and HQ location
+3. ALSO find a mid-level corporate contact who handles technology or marketing for franchisees (VP Marketing, Director of Digital, Regional Director) — NOT the CEO/President
+4. Mark the franchise owner as is_primary=true — they are the #1 person to call"""
     else:
-        strategy = """This is a LOCAL SMB. Your goal:
-1. Find the OWNER, General Manager, or Marketing Manager
-2. This is the person who makes buying decisions for the business
-3. Focus on finding their full name, title, and LinkedIn URL"""
+        strategy = f"""This is a LOCAL SMB ({company_name} in {location}).
+
+We sell AI automation, web development, and SEO. Find the person who MAKES BUYING DECISIONS:
+1. Owner, Founder, or President — the person who writes checks
+2. If no owner found, look for General Manager or Marketing Manager
+3. The decision maker is NOT a receptionist or front desk person
+4. Find their full name, title, and LinkedIn URL if possible
+5. Mark the top decision maker as is_primary=true"""
 
     # Build the search queries
     company_encoded = urllib.parse.quote(company_name)

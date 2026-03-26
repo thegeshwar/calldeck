@@ -248,7 +248,7 @@ export function LeadCard({
       )}
 
       {/* Intel */}
-      <IntelStrip lead={lead} primaryContact={primaryContact} />
+      <IntelStrip lead={lead} contacts={lead.contacts} primaryContact={primaryContact} />
 
       {/* Action buttons */}
       <div className="flex items-center gap-2">

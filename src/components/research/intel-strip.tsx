@@ -1,15 +1,16 @@
 "use client";
 
-import { Cpu, User, Zap, AlertTriangle } from "lucide-react";
+import { Cpu, User, Zap, AlertTriangle, Phone, Mail } from "lucide-react";
 import { Lead, Contact } from "@/lib/types";
 import { ResearchButton } from "./research-button";
 
 interface IntelStripProps {
   lead: Lead;
+  contacts?: Contact[];
   primaryContact?: Contact | null;
 }
 
-export function IntelStrip({ lead, primaryContact }: IntelStripProps) {
+export function IntelStrip({ lead, contacts = [], primaryContact }: IntelStripProps) {
   const researchDone = lead.research_status === "done";
   const researchRunning =
     lead.research_status === "pending" || lead.research_status === "running";
@@ -100,14 +101,36 @@ export function IntelStrip({ lead, primaryContact }: IntelStripProps) {
         </div>
       )}
 
-      {/* Best contact */}
-      {primaryContact && (primaryContact.name || primaryContact.title) && (
-        <div className="flex items-center gap-1.5 text-[10px] font-[family-name:var(--font-mono)] text-text-secondary">
-          <User size={10} className="text-purple shrink-0" />
-          <span>
-            {primaryContact.name}
-            {primaryContact.title ? ` · ${primaryContact.title}` : ""}
-          </span>
+      {/* All contacts */}
+      {contacts.length > 0 && (
+        <div className="space-y-1">
+          <div className="text-[10px] font-[family-name:var(--font-mono)] uppercase tracking-[0.8px] text-text-muted">
+            Contacts
+          </div>
+          {contacts.map((c) => (
+            <div
+              key={c.id}
+              className="flex items-center gap-2 text-[10px] font-[family-name:var(--font-mono)]"
+            >
+              <User size={10} className={c.is_primary ? "text-green shrink-0" : "text-text-muted shrink-0"} />
+              <span className={c.is_primary ? "text-green" : "text-text-secondary"}>
+                {c.name}
+              </span>
+              {c.title && (
+                <span className="text-text-muted truncate">{c.title}</span>
+              )}
+              {c.direct_phone && (
+                <span className="flex items-center gap-0.5 text-cyan ml-auto shrink-0">
+                  <Phone size={8} /> {c.direct_phone}
+                </span>
+              )}
+              {c.email && (
+                <span className="flex items-center gap-0.5 text-cyan shrink-0">
+                  <Mail size={8} /> {c.email}
+                </span>
+              )}
+            </div>
+          ))}
         </div>
       )}
 
